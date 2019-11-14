@@ -72,7 +72,7 @@
     <guava.version>28.1-android</guava.version>
     <threeten.version>1.4.0</threeten.version>
     <animal-sniffer.version>1.18</animal-sniffer.version>
-    <easymock.version>3.6</easymock.version>
+    <easymock.version>4.1</easymock.version>
     <errorprone.version>2.3.3</errorprone.version>
   </properties>
 
