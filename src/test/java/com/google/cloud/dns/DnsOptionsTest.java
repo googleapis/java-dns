@@ -18,18 +18,19 @@ package com.google.cloud.dns;
 
 import com.google.cloud.TransportOptions;
 import org.easymock.EasyMock;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class DnsOptionsTest {
 
-  @Rule public ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testInvalidTransport() {
-    thrown.expect(IllegalArgumentException.class);
-    DnsOptions.newBuilder()
-        .setTransportOptions(EasyMock.<TransportOptions>createMock(TransportOptions.class));
+    try {
+      DnsOptions.newBuilder()
+          .setTransportOptions(EasyMock.<TransportOptions>createMock(TransportOptions.class));
+      Assert.fail();
+    } catch (IllegalArgumentException ex) {
+      Assert.assertNotNull(ex.getMessage());
+    }
   }
 }
