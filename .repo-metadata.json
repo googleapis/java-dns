@@ -2,12 +2,15 @@
   "name": "dns",
   "name_pretty": "Cloud DNS",
   "product_documentation": "https://cloud.google.com/dns",
-  "client_documentation": "https://googleapis.dev/java/google-cloud-clients/latest/index.html?com/google/cloud/dns/package-summary.html",
+  "client_documentation": "https://googleapis.dev/java/google-cloud-dns/latest/",
   "issue_tracker": "https://issuetracker.google.com/savedsearches/559772",
   "release_level": "alpha",
   "language": "java",
   "repo": "googleapis/java-dns",
   "repo_short": "java-dns",
   "distribution_name": "com.google.cloud:google-cloud-dns",
-  "api_id": "dns.googleapis.com"
+  "api_id": "dns.googleapis.com",
+  "transport": "http",
+  "requires_billing": true,
+  "api_description": "a scalable, reliable, and managed authoritative Domain Name System (DNS) service running on the same infrastructure as Google. It has low latency, high availability and is a cost-effective way to make your applications and services available to your users. Cloud DNS translates requests for domain names like www.google.com into IP addresses like 74.125.29.101. Cloud DNS is programmable. You can easily publish and manage millions of DNS zones and records using our simple user interface, command-line interface or API."
 }
