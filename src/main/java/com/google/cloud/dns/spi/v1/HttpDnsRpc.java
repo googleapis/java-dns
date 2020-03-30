@@ -28,6 +28,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ChangesListResponse;
+import com.google.api.services.dns.model.DnsKey;
+import com.google.api.services.dns.model.DnsKeysListResponse;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.ManagedZonesListResponse;
 import com.google.api.services.dns.model.Project;
@@ -378,6 +380,43 @@ public class HttpDnsRpc implements DnsRpc {
       request = request.setSortBy(SORT_BY).setSortOrder(Option.SORTING_ORDER.getString(options));
     }
     return request;
+  }
+
+  @Override
+  public DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options) {
+    try {
+      return dns.dnsKeys()
+          .get(this.options.getProjectId(), zoneName, dnsKeyId)
+          .setFields(Option.FIELDS.getString(options))
+          .execute();
+    } catch (IOException ex) {
+      DnsException serviceException = translate(ex, true);
+      if (serviceException.getCode() == HTTP_NOT_FOUND) {
+        return null;
+      }
+      throw serviceException;
+    }
+  }
+
+  @Override
+  public ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options) {
+    try {
+      DnsKeysListResponse dnsKeysListResponse =
+          dns.dnsKeys()
+              .list(this.options.getProjectId(), zoneName)
+              .setFields(Option.FIELDS.getString(options))
+              .setMaxResults(Option.PAGE_SIZE.getInt(options))
+              .setPageToken(Option.PAGE_TOKEN.getString(options))
+              .execute();
+      return ListResult.of(
+          dnsKeysListResponse.getNextPageToken(), dnsKeysListResponse.getDnsKeys());
+    } catch (IOException ex) {
+      DnsException serviceException = translate(ex, true);
+      if (serviceException.getCode() == HTTP_NOT_FOUND) {
+        return null;
+      }
+      throw serviceException;
+    }
   }
 
   @Override

@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.api.gax.paging.Page;
 import com.google.api.services.dns.model.Change;
+import com.google.api.services.dns.model.DnsKey;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.Project;
 import com.google.api.services.dns.model.ResourceRecordSet;
@@ -104,6 +105,29 @@ final class DnsImpl extends BaseService<DnsOptions> implements Dns {
     @Override
     public Page<RecordSet> getNextPage() {
       return listRecordSets(zoneName, serviceOptions, requestOptions);
+    }
+  }
+
+  static class DnsKeyPageFetcher implements PageImpl.NextPageFetcher<DnsKeyInfo> {
+
+    private final Map<DnsRpc.Option, ?> requestOptions;
+    private final DnsOptions serviceOptions;
+    private final String zoneName;
+
+    DnsKeyPageFetcher(
+        String zoneName,
+        DnsOptions serviceOptions,
+        String cursor,
+        Map<DnsRpc.Option, ?> optionMap) {
+      this.zoneName = zoneName;
+      this.serviceOptions = serviceOptions;
+      this.requestOptions =
+          PageImpl.nextRequestOptions(DnsRpc.Option.PAGE_TOKEN, cursor, optionMap);
+    }
+
+    @Override
+    public Page<DnsKeyInfo> getNextPage() {
+      return listDnsKeys(zoneName, serviceOptions, requestOptions);
     }
   }
 
@@ -357,6 +381,62 @@ final class DnsImpl extends BaseService<DnsOptions> implements Dns {
       return answer == null ? null : ChangeRequest.fromPb(this, zoneName, answer);
     } catch (RetryHelper.RetryHelperException ex) {
       throw DnsException.translateAndThrow(ex);
+    }
+  }
+
+  @Override
+  public DnsKeyInfo getDnsKey(
+      final String zoneName, final String dnsKeyId, final DnsKeyOption... options) {
+    final Map<DnsRpc.Option, ?> optionsMap = optionMap(options);
+    try {
+      DnsKey answer =
+          runWithRetries(
+              new Callable<DnsKey>() {
+                @Override
+                public DnsKey call() {
+                  return dnsRpc.getDnsKey(zoneName, dnsKeyId, optionsMap);
+                }
+              },
+              getOptions().getRetrySettings(),
+              EXCEPTION_HANDLER,
+              getOptions().getClock());
+      return answer == null ? null : DnsKeyInfo.fromPb(answer);
+    } catch (RetryHelper.RetryHelperException ex) {
+      throw DnsException.translateAndThrow(ex);
+    }
+  }
+
+  @Override
+  public Page<DnsKeyInfo> listDnsKeys(String zoneName, DnsKeyListOption... options) {
+    return listDnsKeys(zoneName, getOptions(), optionMap(options));
+  }
+
+  private static Page<DnsKeyInfo> listDnsKeys(
+      final String zoneName,
+      final DnsOptions serviceOptions,
+      final Map<DnsRpc.Option, ?> optionsMap) {
+    try {
+      final DnsRpc rpc = serviceOptions.getDnsRpcV1();
+      DnsRpc.ListResult<DnsKey> result =
+          runWithRetries(
+              new Callable<DnsRpc.ListResult<DnsKey>>() {
+                @Override
+                public DnsRpc.ListResult<DnsKey> call() {
+                  return rpc.listDnsKeys(zoneName, optionsMap);
+                }
+              },
+              serviceOptions.getRetrySettings(),
+              EXCEPTION_HANDLER,
+              serviceOptions.getClock());
+      String cursor = result.pageToken();
+      Iterable<DnsKeyInfo> dnsKeys =
+          result.results() == null
+              ? ImmutableList.<DnsKeyInfo>of()
+              : Iterables.transform(result.results(), DnsKeyInfo.FROM_PB_FUNCTION);
+      return new PageImpl<>(
+          new DnsKeyPageFetcher(zoneName, serviceOptions, cursor, optionsMap), cursor, dnsKeys);
+    } catch (RetryHelper.RetryHelperException e) {
+      throw DnsException.translateAndThrow(e);
     }
   }
 

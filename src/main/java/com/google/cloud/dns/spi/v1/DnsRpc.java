@@ -17,6 +17,7 @@
 package com.google.cloud.dns.spi.v1;
 
 import com.google.api.services.dns.model.Change;
+import com.google.api.services.dns.model.DnsKey;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.Project;
 import com.google.api.services.dns.model.ResourceRecordSet;
@@ -171,6 +172,26 @@ public interface DnsRpc extends ServiceRpc {
    */
   ListResult<Change> listChangeRequests(String zoneName, Map<Option, ?> options)
       throws DnsException;
+
+  /**
+   * Applies dns key request to a zone.
+   *
+   * @param zoneName the name of a zone to which the {@code DnsKey} should be applied
+   * @param dnsKeyId dns key to be applied
+   * @param options a map of options for the service call
+   * @return updated dns key object with server-assigned ID
+   * @throws DnsException upon failure or if zone was not found
+   */
+  DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options);
+
+  /**
+   * List existing dns keys requests for a zone.
+   *
+   * @param zoneName the name of a zone to which the {@code DnsKey}s were be applied
+   * @param options a map of options for the service call
+   * @throws DnsException upon failure or if zone was not found
+   */
+  ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options);
 
   /** Creates an empty batch. */
   RpcBatch createBatch();

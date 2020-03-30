@@ -140,6 +140,39 @@ public interface Dns extends Service<DnsOptions> {
     }
   }
 
+  /**
+   * The fields of a dns request.
+   *
+   * <p>These values can be used to specify the fields to include in a partial response when calling
+   * {@link Dns#listDnsKeys(String, DnsKeyListOption...)} The ID is always returned even if not
+   * selected.
+   */
+  enum DnsKeyField implements FieldSelector {
+    ALGORITHM("algorithm"),
+    CREATION_TIME("creationTime"),
+    DESCRIPTION("description"),
+    ID("id"),
+    IS_ACTIVE("isActive"),
+    KEY_LENGTH("keyLength"),
+    KEY_TAG("keyTag"),
+    KIND("kind"),
+    PUBLIC_KEY("publicKey"),
+    TYPE("type");
+
+    static final List<? extends FieldSelector> REQUIRED_FIELDS = ImmutableList.of(ID);
+
+    private final String selector;
+
+    DnsKeyField(String selector) {
+      this.selector = selector;
+    }
+
+    @Override
+    public String getSelector() {
+      return selector;
+    }
+  }
+
   /** The sorting order for listing. */
   enum SortingOrder {
     DESCENDING,
@@ -380,6 +413,86 @@ public interface Dns extends Service<DnsOptions> {
     }
   }
 
+  /** Class for specifying dns request field options. */
+  class DnsKeyOption extends Option {
+
+    private static final long serialVersionUID = 1067273695061077782L;
+
+    DnsKeyOption(DnsRpc.Option option, Object value) {
+      super(option, value);
+    }
+
+    /**
+     * Returns an option to specify which fields of {@link DnsKeyInfo} should be returned by the
+     * service.
+     *
+     * <p>If this option is not provided all change request fields are returned. {@code
+     * DnsKeyField.fields} can be used to specify only the fields of interest. The ID of the change
+     * request is always returned, even if not specified. {@link DnsKeyField} provides a list of
+     * fields that can be used.
+     */
+    public static DnsKeyOption fields(DnsKeyField... fields) {
+      return new DnsKeyOption(
+          DnsRpc.Option.FIELDS, Helper.selector(DnsKeyField.REQUIRED_FIELDS, fields));
+    }
+  }
+
+  /** Class for specifying dns request listing options. */
+  class DnsKeyListOption extends Option {
+
+    private static final long serialVersionUID = -900209143895376089L;
+
+    DnsKeyListOption(DnsRpc.Option option, Object value) {
+      super(option, value);
+    }
+
+    /**
+     * Returns an option to specify which fields of{@link DnsKeyInfo} should be returned by the
+     * service.
+     *
+     * <p>If this option is not provided all change request fields are returned. {@code
+     * DnsKeyOption.fields} can be used to specify only the fields of interest. The ID of the change
+     * request is always returned, even if not specified. {@link DnsKeyField} provides a list of
+     * fields that can be used.
+     */
+    public static DnsKeyListOption fields(DnsKeyField... fields) {
+      return new DnsKeyListOption(
+          DnsRpc.Option.FIELDS,
+          Helper.listSelector("dnskeys", DnsKeyField.REQUIRED_FIELDS, fields));
+    }
+
+    /**
+     * Returns an option to specify a page token.
+     *
+     * <p>The page token (returned from a previous call to list) indicates from where listing should
+     * continue.
+     */
+    public static DnsKeyListOption pageToken(String pageToken) {
+      return new DnsKeyListOption(DnsRpc.Option.PAGE_TOKEN, pageToken);
+    }
+
+    /**
+     * The maximum number of change requests to return per RPC.
+     *
+     * <p>The server can return fewer change requests than requested. When there are more results
+     * than the page size, the server will return a page token that can be used to fetch other
+     * results.
+     */
+    public static DnsKeyListOption pageSize(int pageSize) {
+      return new DnsKeyListOption(DnsRpc.Option.PAGE_SIZE, pageSize);
+    }
+
+    /**
+     * Returns an option to specify whether the the change requests should be listed in ascending
+     * (most-recent last) or descending (most-recent first) order with respect to when the change
+     * request was accepted by the server. If this option is not provided, the listing order is
+     * undefined.
+     */
+    public static DnsKeyListOption sortOrder(SortingOrder order) {
+      return new DnsKeyListOption(DnsRpc.Option.SORTING_ORDER, order.selector());
+    }
+  }
+
   /**
    * Creates a new zone.
    *
@@ -486,6 +599,27 @@ public interface Dns extends Service<DnsOptions> {
    * @see <a href="https://cloud.google.com/dns/api/v1/changes/list">Cloud DNS Chages: list</a>
    */
   Page<ChangeRequest> listChangeRequests(String zoneName, ChangeRequestListOption... options);
+
+  /**
+   * Retrieves the information about the dns key. The returned fields can be optionally restricted
+   * by specifying {@link DnsKeyOption}s.
+   *
+   * @throws DnsException upon failure
+   * @see <a href="https://cloud.google.com/dns/api/v1/dnsKeys/get">Cloud DNS DnsKeys: get</a>
+   */
+  DnsKeyInfo getDnsKey(String zoneName, String dnsKeyId, DnsKeyOption... options);
+
+  /**
+   * Lists the dns keys requests for the zone identified by name that were submitted to the service.
+   *
+   * <p>The sorting order for dns keys (based on when they were received by the server), fields to
+   * be returned, page size and page token can be specified using {@link DnsKeyListOption}s.
+   *
+   * @return A page of change requests
+   * @throws DnsException upon failure or if the zone cannot be found
+   * @see <a href="https://cloud.google.com/dns/api/v1/changes/list">Cloud DNS DnsKeys: list</a>
+   */
+  Page<DnsKeyInfo> listDnsKeys(String zoneName, DnsKeyListOption... options);
 
   /** Creates a new empty batch for grouping multiple service calls in one underlying RPC call. */
   DnsBatch batch();
