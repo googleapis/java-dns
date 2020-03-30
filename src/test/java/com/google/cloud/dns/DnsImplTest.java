@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.api.core.ApiClock;
 import com.google.api.gax.paging.Page;
 import com.google.api.services.dns.model.Change;
+import com.google.api.services.dns.model.DnsKey;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.cloud.ServiceOptions;
@@ -50,6 +51,19 @@ public class DnsImplTest {
       RecordSet.newBuilder("Different", RecordSet.Type.AAAA).build();
   private static final Integer MAX_SIZE = 20;
   private static final String PAGE_TOKEN = "some token";
+  private static final String ALGORITHM = "rsasha256";
+  private static final String CREATION_TIME = "2020-03-30T08: 17: 54.238Z";
+  private static final String DIGEST =
+      "79E78E89063C3E93E46A1980ACCEFAA4D6CEBB3A64E1D8861D07AB11B9C2114E";
+  private static final String DIGEST_TYPE = "sha256";
+  private static final String ID = "0";
+  private static final Boolean IS_ACTIVE = true;
+  private static final Long KEY_LENGTH = 2048L;
+  private static final Integer KEY_TAG = 42469;
+  private static final String KIND = "dns#dnsKey";
+  private static final String PUBLIC_KEY =
+      "AwEAAY0YBNl1ImXLMd8FiSGLkR/1WwFXsZne7id96Be+76HFEP2zsoiy9oSd2Pjlfk2QDUeg1+MKc2JQFbvYOANejCpVHq1Z+qck7KeeLdA6qeg6fbRwlgIFE+9mC94PncghLzA/i8kSWlT9YP58qe/ACR/lgSVc35qDyYWrAOOI4+F50wrwhi8j/YentIxlQjYI5Jrj7HExhk7NXH9WWDtQdooBZrgrC1uSWvan4b2rOQxujJ/CWpXv4p5iyrtFD/u6q5nmCW8BjxCq9NJW4vJTtrN7plngd0jrbfAFUE+pzOSgsD0fOc+vIB++Ksuni5qME1zBEnUIbVueFmun2HNPWI0=";
+  private static final String TYPE = "keySigning";
   private static final ZoneInfo ZONE_INFO = ZoneInfo.of(ZONE_NAME, DNS_NAME, DESCRIPTION);
   private static final ProjectInfo PROJECT_INFO = ProjectInfo.newBuilder().build();
   private static final ChangeRequestInfo CHANGE_REQUEST_PARTIAL =
@@ -61,7 +75,35 @@ public class DnsImplTest {
           .setStatus(ChangeRequest.Status.PENDING)
           .setGeneratedId(CHANGE_ID)
           .build();
-
+  private static final DnsKeyInfo.DnsKeyDigest DNS_KEY_DIGEST =
+      DnsKeyInfo.DnsKeyDigest.newBuilder().setDigest(DIGEST).setType(DIGEST_TYPE).build();
+  private static final DnsKeyInfo DNS_KEY_INFO =
+      DnsKeyInfo.newBuilder()
+          .setAlgorithm(ALGORITHM)
+          .setCreationTime(CREATION_TIME)
+          .setDescription(DESCRIPTION)
+          .setDigests(ImmutableList.of(DNS_KEY_DIGEST))
+          .setId(ID)
+          .setIsActive(IS_ACTIVE)
+          .setKeyLength(KEY_LENGTH)
+          .setKeyTag(KEY_TAG)
+          .setKind(KIND)
+          .setPublicKey(PUBLIC_KEY)
+          .setType(TYPE)
+          .build();
+  private static final DnsKeyInfo DNS_KEY_INFO1 =
+      DnsKeyInfo.newBuilder()
+          .setAlgorithm(ALGORITHM)
+          .setCreationTime(CREATION_TIME)
+          .setDescription(DESCRIPTION)
+          .setId(ID)
+          .setIsActive(IS_ACTIVE)
+          .setKeyLength(KEY_LENGTH)
+          .setKeyTag(KEY_TAG)
+          .setKind(KIND)
+          .setPublicKey(PUBLIC_KEY)
+          .setType(TYPE)
+          .build();
   // Result lists
   private static final DnsRpc.ListResult<Change> LIST_RESULT_OF_PB_CHANGES =
       DnsRpc.ListResult.of(
@@ -71,6 +113,8 @@ public class DnsImplTest {
       DnsRpc.ListResult.of("cursor", ImmutableList.of(ZONE_INFO.toPb()));
   private static final DnsRpc.ListResult<ResourceRecordSet> LIST_OF_PB_DNS_RECORDS =
       DnsRpc.ListResult.of("cursor", ImmutableList.of(DNS_RECORD1.toPb(), DNS_RECORD2.toPb()));
+  private static final DnsRpc.ListResult<DnsKey> LIST_OF_PB_DNS_KEYS =
+      DnsRpc.ListResult.of("cursor", ImmutableList.of(DNS_KEY_INFO.toPb(), DNS_KEY_INFO1.toPb()));
 
   // Field options
   private static final Dns.ZoneOption ZONE_FIELDS =
@@ -435,5 +479,32 @@ public class DnsImplTest {
     String type =
         (String) capturedOptions.getValue().get(RECORD_SET_LIST_OPTIONS[4].getRpcOption());
     assertEquals(RECORD_SET_LIST_OPTIONS[4].getValue(), type);
+  }
+
+  @Test
+  public void testGetDnsKey() {
+    Capture<Map<DnsRpc.Option, Object>> capturedOptions = Capture.newInstance();
+    EasyMock.expect(
+            dnsRpcMock.getDnsKey(
+                EasyMock.eq(ZONE_NAME), EasyMock.eq(ID), EasyMock.capture(capturedOptions)))
+        .andReturn(DNS_KEY_INFO.toPb());
+    EasyMock.replay(dnsRpcMock);
+    dns = options.getService();
+    DnsKeyInfo dnsKeyInfo = dns.getDnsKey(ZONE_NAME, ID);
+    assertEquals(DNS_KEY_INFO, dnsKeyInfo);
+  }
+
+  @Test
+  public void testListDnsKeys() {
+    Capture<Map<DnsRpc.Option, Object>> capturedOptions = Capture.newInstance();
+    EasyMock.expect(
+            dnsRpcMock.listDnsKeys(EasyMock.eq(ZONE_NAME), EasyMock.capture(capturedOptions)))
+        .andReturn(LIST_OF_PB_DNS_KEYS);
+    EasyMock.replay(dnsRpcMock);
+    dns = options.getService();
+    Page<DnsKeyInfo> dnsKeyInfoPage = dns.listDnsKeys(ZONE_NAME);
+    assertTrue(Lists.newArrayList(dnsKeyInfoPage.getValues()).contains(DNS_KEY_INFO));
+    assertTrue(Lists.newArrayList(dnsKeyInfoPage.getValues()).contains(DNS_KEY_INFO1));
+    assertEquals(2, Lists.newArrayList(dnsKeyInfoPage.getValues()).size());
   }
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- see http://www.mojohaus.org/clirr-maven-plugin/examples/ignored-differences.html -->
+<differences>
+  <difference>
+    <className>com/google/cloud/dns/Dns</className>
+    <method>com.google.cloud.dns.DnsKeyInfo getDnsKey(java.lang.String, java.lang.String, com.google.cloud.dns.Dns$DnsKeyOption[])</method>
+    <differenceType>7012</differenceType>
+  </difference>
+  <difference>
+    <className>com/google/cloud/dns/Dns</className>
+    <method>com.google.api.gax.paging.Page listDnsKeys(java.lang.String, com.google.cloud.dns.Dns$DnsKeyListOption[])</method>
+    <differenceType>7012</differenceType>
+  </difference>
+  <difference>
+    <className>com/google/cloud/dns/spi/v1/DnsRpc</className>
+    <method>com.google.api.services.dns.model.DnsKey getDnsKey(java.lang.String, java.lang.String, java.util.Map)</method>
+    <differenceType>7012</differenceType>
+  </difference>
+  <difference>
+    <className>com/google/cloud/dns/spi/v1/DnsRpc</className>
+    <method>com.google.cloud.dns.spi.v1.DnsRpc$ListResult listDnsKeys(java.lang.String, java.util.Map)</method>
+    <differenceType>7012</differenceType>
+  </difference>
+</differences>

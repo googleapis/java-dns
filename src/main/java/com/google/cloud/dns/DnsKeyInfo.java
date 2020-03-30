@@ -326,7 +326,9 @@ public class DnsKeyInfo implements Serializable {
     dnsKey.setAlgorithm(algorithm);
     dnsKey.setCreationTime(creationTime);
     dnsKey.setDescription(description);
-    dnsKey.setDigests(Lists.transform(digests, DnsKeyDigest.TO_PB_FUNCTION));
+    if (digests != null) {
+      dnsKey.setDigests(Lists.transform(digests, DnsKeyDigest.TO_PB_FUNCTION));
+    }
     dnsKey.setId(id);
     dnsKey.setIsActive(isActive);
     dnsKey.setKeyLength(keyLength);
