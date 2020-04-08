@@ -14,9 +14,29 @@
 
 """This script is used to synthesize generated parts of this library."""
 
+import synthtool as s
+from synthtool import gcp
 import synthtool.languages.java as java
 
 AUTOSYNTH_MULTIPLE_COMMITS = True
+gapic = gcp.GAPICBazel()
+
+service = 'dns'
+versions = ['v1']
+
+for version in versions:
+    library = gapic.java_library(
+        service=service,
+        version=version,
+        bazel_target=f'//gapic/google/{service}/{version}:google-cloud-{service}-{version}-java',
+        discogapic = True,
+    )
+
+    library = library / f'google-cloud-{service}-{version}-java'
+
+    s.copy(library / f'gapic-google-cloud-{service}-{version}-java/src', 'src')
+
+    java.format_code('./src')
 
 java.common_templates(excludes=[
     'README.md',
