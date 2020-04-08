@@ -24,6 +24,7 @@ import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.cloud.ServiceRpc;
 import com.google.cloud.dns.DnsException;
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 import java.util.Map;
 
 public interface DnsRpc extends ServiceRpc {
@@ -174,15 +175,15 @@ public interface DnsRpc extends ServiceRpc {
       throws DnsException;
 
   /**
-   * Applies dns key request to a zone.
+   * Applies DNS key request to a zone.
    *
    * @param zoneName the name of a zone to which the {@code DnsKey} should be applied
-   * @param dnsKeyId dns key to be applied
+   * @param dnsKeyId DNS key to be applied
    * @param options a map of options for the service call
    * @return updated dns key object with server-assigned ID
    * @throws DnsException upon failure or if zone was not found
    */
-  DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options);
+  DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options) throws IOException;
 
   /**
    * List existing dns keys requests for a zone.
@@ -191,7 +192,7 @@ public interface DnsRpc extends ServiceRpc {
    * @param options a map of options for the service call
    * @throws DnsException upon failure or if zone was not found
    */
-  ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options);
+  ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options) throws IOException;
 
   /** Creates an empty batch. */
   RpcBatch createBatch();

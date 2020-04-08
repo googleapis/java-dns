@@ -37,8 +37,8 @@ public class DnsKeyInfoTest {
   private static final String PUBLIC_KEY =
       "AwEAAY0YBNl1ImXLMd8FiSGLkR/1WwFXsZne7id96Be+76HFEP2zsoiy9oSd2Pjlfk2QDUeg1+MKc2JQFbvYOANejCpVHq1Z+qck7KeeLdA6qeg6fbRwlgIFE+9mC94PncghLzA/i8kSWlT9YP58qe/ACR/lgSVc35qDyYWrAOOI4+F50wrwhi8j/YentIxlQjYI5Jrj7HExhk7NXH9WWDtQdooBZrgrC1uSWvan4b2rOQxujJ/CWpXv4p5iyrtFD/u6q5nmCW8BjxCq9NJW4vJTtrN7plngd0jrbfAFUE+pzOSgsD0fOc+vIB++Ksuni5qME1zBEnUIbVueFmun2HNPWI0=";
   private static final String TYPE = "keySigning";
-  private static final DnsKeyInfo.DnsKeyDigest DNS_KEY_DIGEST =
-      DnsKeyInfo.DnsKeyDigest.newBuilder().setDigest(DIGEST).setType(DIGEST_TYPE).build();
+  private static final DnsKeyInfo.DnsKeyDigestInfo DNS_KEY_DIGEST =
+      DnsKeyInfo.DnsKeyDigestInfo.newBuilder().setDigest(DIGEST).setType(DIGEST_TYPE).build();
   private static final DnsKeyInfo DNS_KEY_INFO =
       DnsKeyInfo.newBuilder()
           .setAlgorithm(ALGORITHM)
@@ -71,7 +71,7 @@ public class DnsKeyInfoTest {
 
   @Test
   public void testToAndFromPb() {
-    DnsKeyInfo info = DnsKeyInfo.fromPb(DNS_KEY_INFO.toPb());
+    DnsKeyInfo info = DnsKeyInfo.fromProtobuf(DNS_KEY_INFO.toProtobuf());
     compareDnsKey(DNS_KEY_INFO, info);
   }
 

@@ -141,7 +141,7 @@ public interface Dns extends Service<DnsOptions> {
   }
 
   /**
-   * The fields of a dns request.
+   * The fields of a DNS request.
    *
    * <p>These values can be used to specify the fields to include in a partial response when calling
    * {@link Dns#listDnsKeys(String, DnsKeyListOption...)} The ID is always returned even if not
@@ -426,7 +426,7 @@ public interface Dns extends Service<DnsOptions> {
      * Returns an option to specify which fields of {@link DnsKeyInfo} should be returned by the
      * service.
      *
-     * <p>If this option is not provided all change request fields are returned. {@code
+     * <p>If this option is not provided, all change request fields are returned. {@code
      * DnsKeyField.fields} can be used to specify only the fields of interest. The ID of the change
      * request is always returned, even if not specified. {@link DnsKeyField} provides a list of
      * fields that can be used.
@@ -450,7 +450,7 @@ public interface Dns extends Service<DnsOptions> {
      * Returns an option to specify which fields of{@link DnsKeyInfo} should be returned by the
      * service.
      *
-     * <p>If this option is not provided all change request fields are returned. {@code
+     * <p>If this option is not provided, all change request fields are returned. {@code
      * DnsKeyOption.fields} can be used to specify only the fields of interest. The ID of the change
      * request is always returned, even if not specified. {@link DnsKeyField} provides a list of
      * fields that can be used.
@@ -483,7 +483,7 @@ public interface Dns extends Service<DnsOptions> {
     }
 
     /**
-     * Returns an option to specify whether the the change requests should be listed in ascending
+     * Returns an option to specify whether the change requests should be listed in ascending
      * (most-recent last) or descending (most-recent first) order with respect to when the change
      * request was accepted by the server. If this option is not provided, the listing order is
      * undefined.
@@ -601,8 +601,8 @@ public interface Dns extends Service<DnsOptions> {
   Page<ChangeRequest> listChangeRequests(String zoneName, ChangeRequestListOption... options);
 
   /**
-   * Retrieves the information about the dns key. The returned fields can be optionally restricted
-   * by specifying {@link DnsKeyOption}s.
+   * Retrieves the information about the DNS key. The returned fields can be restricted by
+   * specifying {@link DnsKeyOption}s.
    *
    * @throws DnsException upon failure
    * @see <a href="https://cloud.google.com/dns/api/v1/dnsKeys/get">Cloud DNS DnsKeys: get</a>
@@ -610,12 +610,12 @@ public interface Dns extends Service<DnsOptions> {
   DnsKeyInfo getDnsKey(String zoneName, String dnsKeyId, DnsKeyOption... options);
 
   /**
-   * Lists the dns keys requests for the zone identified by name that were submitted to the service.
+   * Lists the DNS keys requests for the zone identified by name that were submitted to the service.
    *
-   * <p>The sorting order for dns keys (based on when they were received by the server), fields to
+   * <p>The sorting order for DNS keys (based on when they were received by the server), fields to
    * be returned, page size and page token can be specified using {@link DnsKeyListOption}s.
    *
-   * @return A page of change requests
+   * @return a page of change requests
    * @throws DnsException upon failure or if the zone cannot be found
    * @see <a href="https://cloud.google.com/dns/api/v1/changes/list">Cloud DNS DnsKeys: list</a>
    */

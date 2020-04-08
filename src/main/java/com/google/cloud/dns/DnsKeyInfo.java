@@ -17,8 +17,10 @@
 package com.google.cloud.dns;
 
 import com.google.api.services.dns.model.DnsKey;
+import com.google.api.services.dns.model.DnsKeyDigest;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.List;
@@ -26,18 +28,18 @@ import java.util.Objects;
 
 public class DnsKeyInfo implements Serializable {
 
-  static Function<DnsKey, DnsKeyInfo> FROM_PB_FUNCTION =
+  static Function<DnsKey, DnsKeyInfo> FROM_PROTOBUF_FUNCTION =
       new Function<DnsKey, DnsKeyInfo>() {
         @Override
         public DnsKeyInfo apply(DnsKey dnsKey) {
-          return DnsKeyInfo.fromPb(dnsKey);
+          return DnsKeyInfo.fromProtobuf(dnsKey);
         }
       };
 
   private final String algorithm;
   private final String creationTime;
   private final String description;
-  private final List<DnsKeyDigest> digests;
+  private final List<DnsKeyDigestInfo> digests;
   private final String id;
   private final Boolean isActive;
   private final Long keyLength;
@@ -46,21 +48,21 @@ public class DnsKeyInfo implements Serializable {
   private final String publicKey;
   private final String type;
 
-  static class DnsKeyDigest implements Serializable {
+  static class DnsKeyDigestInfo implements Serializable {
 
-    static Function<com.google.api.services.dns.model.DnsKeyDigest, DnsKeyDigest> FROM_PB_FUNCTION =
-        new Function<com.google.api.services.dns.model.DnsKeyDigest, DnsKeyDigest>() {
+    static Function<DnsKeyDigest, DnsKeyDigestInfo> FROM_PROTOBUF_FUNCTION =
+        new Function<com.google.api.services.dns.model.DnsKeyDigest, DnsKeyDigestInfo>() {
           @Override
-          public DnsKeyDigest apply(com.google.api.services.dns.model.DnsKeyDigest dnsKeyDigest) {
-            return DnsKeyDigest.fromPb(dnsKeyDigest);
+          public DnsKeyDigestInfo apply(DnsKeyDigest dnsKeyDigest) {
+            return DnsKeyDigestInfo.fromProtobuf(dnsKeyDigest);
           }
         };
 
-    static Function<DnsKeyDigest, com.google.api.services.dns.model.DnsKeyDigest> TO_PB_FUNCTION =
-        new Function<DnsKeyDigest, com.google.api.services.dns.model.DnsKeyDigest>() {
+    static Function<DnsKeyDigestInfo, DnsKeyDigest> TO_PROTOBUF_FUNCTION =
+        new Function<DnsKeyDigestInfo, com.google.api.services.dns.model.DnsKeyDigest>() {
           @Override
-          public com.google.api.services.dns.model.DnsKeyDigest apply(DnsKeyDigest dnsKeyDigest) {
-            return dnsKeyDigest.toPb();
+          public DnsKeyDigest apply(DnsKeyDigestInfo dnsKeyDigestInfo) {
+            return dnsKeyDigestInfo.toProtobuf();
           }
         };
 
@@ -73,7 +75,8 @@ public class DnsKeyInfo implements Serializable {
       private String type;
 
       /**
-       * sets the base-16 encoded bytes of this digest. Suitable for use in a DS resource record.
+       * Sets the hexadecimal encoded bytes of this digest. Suitable for use in a DNS resource
+       * record.
        */
       Builder setDigest(String digest) {
         this.digest = digest;
@@ -86,12 +89,12 @@ public class DnsKeyInfo implements Serializable {
         return this;
       }
 
-      DnsKeyDigest build() {
-        return new DnsKeyDigest(this);
+      DnsKeyDigestInfo build() {
+        return new DnsKeyDigestInfo(this);
       }
     }
 
-    private DnsKeyDigest(Builder builder) {
+    private DnsKeyDigestInfo(Builder builder) {
       this.digest = builder.digest;
       this.type = builder.type;
     }
@@ -110,28 +113,24 @@ public class DnsKeyInfo implements Serializable {
       return new Builder();
     }
 
-    com.google.api.services.dns.model.DnsKeyDigest toPb() {
-      com.google.api.services.dns.model.DnsKeyDigest dnsKeyDigest =
-          new com.google.api.services.dns.model.DnsKeyDigest();
+    DnsKeyDigest toProtobuf() {
+      DnsKeyDigest dnsKeyDigest = new DnsKeyDigest();
       dnsKeyDigest.setDigest(digest);
       dnsKeyDigest.setType(type);
       return dnsKeyDigest;
     }
 
-    static DnsKeyDigest fromPb(com.google.api.services.dns.model.DnsKeyDigest dnsKeyDigest) {
+    static DnsKeyDigestInfo fromProtobuf(DnsKeyDigest dnsKeyDigest) {
       Builder builder = newBuilder();
-      if (dnsKeyDigest.getDigest() != null) {
-        builder.setDigest(dnsKeyDigest.getDigest());
-      }
-      if (dnsKeyDigest.getType() != null) {
-        builder.setType(dnsKeyDigest.getType());
-      }
+      builder.setDigest(dnsKeyDigest.getDigest());
+      builder.setType(dnsKeyDigest.getType());
       return builder.build();
     }
 
     @Override
     public boolean equals(Object other) {
-      return (other instanceof DnsKeyDigest) && this.toPb().equals(((DnsKeyDigest) other).toPb());
+      return (other instanceof DnsKeyDigestInfo)
+          && this.toProtobuf().equals(((DnsKeyDigestInfo) other).toProtobuf());
     }
 
     @Override
@@ -149,7 +148,7 @@ public class DnsKeyInfo implements Serializable {
     private String algorithm;
     private String creationTime;
     private String description;
-    private List<DnsKeyDigest> digests;
+    private List<DnsKeyDigestInfo> digests;
     private String id;
     private Boolean isActive;
     private Long keyLength;
@@ -173,8 +172,8 @@ public class DnsKeyInfo implements Serializable {
       return this;
     }
 
-    Builder setDigests(List<DnsKeyDigest> digests) {
-      this.digests = digests;
+    Builder setDigests(List<DnsKeyDigestInfo> digests) {
+      this.digests = ImmutableList.copyOf(digests);
       return this;
     }
 
@@ -248,7 +247,7 @@ public class DnsKeyInfo implements Serializable {
     return description;
   }
 
-  public List<DnsKeyDigest> getDigests() {
+  public List<DnsKeyDigestInfo> getDigests() {
     return digests;
   }
 
@@ -285,7 +284,7 @@ public class DnsKeyInfo implements Serializable {
     return obj == this
         || obj != null
             && obj.getClass().equals(DnsKeyInfo.class)
-            && toPb().equals(((DnsKeyInfo) obj).toPb());
+            && toProtobuf().equals(((DnsKeyInfo) obj).toProtobuf());
   }
 
   @Override
@@ -321,13 +320,13 @@ public class DnsKeyInfo implements Serializable {
         .toString();
   }
 
-  DnsKey toPb() {
+  DnsKey toProtobuf() {
     DnsKey dnsKey = new DnsKey();
     dnsKey.setAlgorithm(algorithm);
     dnsKey.setCreationTime(creationTime);
     dnsKey.setDescription(description);
     if (digests != null) {
-      dnsKey.setDigests(Lists.transform(digests, DnsKeyDigest.TO_PB_FUNCTION));
+      dnsKey.setDigests(Lists.transform(digests, DnsKeyDigestInfo.TO_PROTOBUF_FUNCTION));
     }
     dnsKey.setId(id);
     dnsKey.setIsActive(isActive);
@@ -339,41 +338,22 @@ public class DnsKeyInfo implements Serializable {
     return dnsKey;
   }
 
-  static DnsKeyInfo fromPb(DnsKey dnsKey) {
+  static DnsKeyInfo fromProtobuf(DnsKey dnsKey) {
     Builder builder = newBuilder();
-    if (dnsKey.getAlgorithm() != null) {
-      builder.setAlgorithm(dnsKey.getAlgorithm());
-    }
-    if (dnsKey.getCreationTime() != null) {
-      builder.setCreationTime(dnsKey.getCreationTime());
-    }
-    if (dnsKey.getDescription() != null) {
-      builder.setDescription(dnsKey.getDescription());
-    }
+    builder.setAlgorithm(dnsKey.getAlgorithm());
+    builder.setCreationTime(dnsKey.getCreationTime());
+    builder.setDescription(dnsKey.getDescription());
     if (dnsKey.getDigests() != null) {
-      builder.setDigests(Lists.transform(dnsKey.getDigests(), DnsKeyDigest.FROM_PB_FUNCTION));
+      builder.setDigests(
+          Lists.transform(dnsKey.getDigests(), DnsKeyDigestInfo.FROM_PROTOBUF_FUNCTION));
     }
-    if (dnsKey.getId() != null) {
-      builder.setId(dnsKey.getId());
-    }
-    if (dnsKey.getIsActive() != null) {
-      builder.setIsActive(dnsKey.getIsActive());
-    }
-    if (dnsKey.getKeyLength() != null) {
-      builder.setKeyLength(dnsKey.getKeyLength());
-    }
-    if (dnsKey.getKeyTag() != null) {
-      builder.setKeyTag(dnsKey.getKeyTag());
-    }
-    if (dnsKey.getKind() != null) {
-      builder.setKind(dnsKey.getKind());
-    }
-    if (dnsKey.getPublicKey() != null) {
-      builder.setPublicKey(dnsKey.getPublicKey());
-    }
-    if (dnsKey.getType() != null) {
-      builder.setType(dnsKey.getType());
-    }
+    builder.setId(dnsKey.getId());
+    builder.setIsActive(dnsKey.getIsActive());
+    builder.setKeyLength(dnsKey.getKeyLength());
+    builder.setKeyTag(dnsKey.getKeyTag());
+    builder.setKind(dnsKey.getKind());
+    builder.setPublicKey(dnsKey.getPublicKey());
+    builder.setType(dnsKey.getType());
     return builder.build();
   }
 }

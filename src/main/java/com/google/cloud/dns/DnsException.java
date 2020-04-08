@@ -56,7 +56,7 @@ public final class DnsException extends BaseHttpServiceException {
    *
    * @throws DnsException when {@code ex} was caused by a {@code DnsException}
    */
-  static DnsException translateAndThrow(RetryHelperException ex) {
+  public static DnsException translateAndThrow(RetryHelperException ex) {
     BaseServiceException.translate(ex);
     throw new DnsException(UNKNOWN_CODE, ex.getMessage(), ex.getCause());
   }

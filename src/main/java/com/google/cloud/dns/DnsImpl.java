@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -393,14 +394,14 @@ final class DnsImpl extends BaseService<DnsOptions> implements Dns {
           runWithRetries(
               new Callable<DnsKey>() {
                 @Override
-                public DnsKey call() {
+                public DnsKey call() throws IOException {
                   return dnsRpc.getDnsKey(zoneName, dnsKeyId, optionsMap);
                 }
               },
               getOptions().getRetrySettings(),
               EXCEPTION_HANDLER,
               getOptions().getClock());
-      return answer == null ? null : DnsKeyInfo.fromPb(answer);
+      return answer == null ? null : DnsKeyInfo.fromProtobuf(answer);
     } catch (RetryHelper.RetryHelperException ex) {
       throw DnsException.translateAndThrow(ex);
     }
@@ -421,7 +422,7 @@ final class DnsImpl extends BaseService<DnsOptions> implements Dns {
           runWithRetries(
               new Callable<DnsRpc.ListResult<DnsKey>>() {
                 @Override
-                public DnsRpc.ListResult<DnsKey> call() {
+                public DnsRpc.ListResult<DnsKey> call() throws IOException {
                   return rpc.listDnsKeys(zoneName, optionsMap);
                 }
               },
@@ -432,7 +433,7 @@ final class DnsImpl extends BaseService<DnsOptions> implements Dns {
       Iterable<DnsKeyInfo> dnsKeys =
           result.results() == null
               ? ImmutableList.<DnsKeyInfo>of()
-              : Iterables.transform(result.results(), DnsKeyInfo.FROM_PB_FUNCTION);
+              : Iterables.transform(result.results(), DnsKeyInfo.FROM_PROTOBUF_FUNCTION);
       return new PageImpl<>(
           new DnsKeyPageFetcher(zoneName, serviceOptions, cursor, optionsMap), cursor, dnsKeys);
     } catch (RetryHelper.RetryHelperException e) {

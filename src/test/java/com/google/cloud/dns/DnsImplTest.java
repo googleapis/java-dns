@@ -31,6 +31,7 @@ import com.google.cloud.dns.spi.v1.DnsRpc;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.util.Map;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -75,8 +76,8 @@ public class DnsImplTest {
           .setStatus(ChangeRequest.Status.PENDING)
           .setGeneratedId(CHANGE_ID)
           .build();
-  private static final DnsKeyInfo.DnsKeyDigest DNS_KEY_DIGEST =
-      DnsKeyInfo.DnsKeyDigest.newBuilder().setDigest(DIGEST).setType(DIGEST_TYPE).build();
+  private static final DnsKeyInfo.DnsKeyDigestInfo DNS_KEY_DIGEST =
+      DnsKeyInfo.DnsKeyDigestInfo.newBuilder().setDigest(DIGEST).setType(DIGEST_TYPE).build();
   private static final DnsKeyInfo DNS_KEY_INFO =
       DnsKeyInfo.newBuilder()
           .setAlgorithm(ALGORITHM)
@@ -114,7 +115,8 @@ public class DnsImplTest {
   private static final DnsRpc.ListResult<ResourceRecordSet> LIST_OF_PB_DNS_RECORDS =
       DnsRpc.ListResult.of("cursor", ImmutableList.of(DNS_RECORD1.toPb(), DNS_RECORD2.toPb()));
   private static final DnsRpc.ListResult<DnsKey> LIST_OF_PB_DNS_KEYS =
-      DnsRpc.ListResult.of("cursor", ImmutableList.of(DNS_KEY_INFO.toPb(), DNS_KEY_INFO1.toPb()));
+      DnsRpc.ListResult.of(
+          "cursor", ImmutableList.of(DNS_KEY_INFO.toProtobuf(), DNS_KEY_INFO1.toProtobuf()));
 
   // Field options
   private static final Dns.ZoneOption ZONE_FIELDS =
@@ -482,12 +484,12 @@ public class DnsImplTest {
   }
 
   @Test
-  public void testGetDnsKey() {
+  public void testGetDnsKey() throws IOException {
     Capture<Map<DnsRpc.Option, Object>> capturedOptions = Capture.newInstance();
     EasyMock.expect(
             dnsRpcMock.getDnsKey(
                 EasyMock.eq(ZONE_NAME), EasyMock.eq(ID), EasyMock.capture(capturedOptions)))
-        .andReturn(DNS_KEY_INFO.toPb());
+        .andReturn(DNS_KEY_INFO.toProtobuf());
     EasyMock.replay(dnsRpcMock);
     dns = options.getService();
     DnsKeyInfo dnsKeyInfo = dns.getDnsKey(ZONE_NAME, ID);
@@ -495,7 +497,7 @@ public class DnsImplTest {
   }
 
   @Test
-  public void testListDnsKeys() {
+  public void testListDnsKeys() throws IOException {
     Capture<Map<DnsRpc.Option, Object>> capturedOptions = Capture.newInstance();
     EasyMock.expect(
             dnsRpcMock.listDnsKeys(EasyMock.eq(ZONE_NAME), EasyMock.capture(capturedOptions)))

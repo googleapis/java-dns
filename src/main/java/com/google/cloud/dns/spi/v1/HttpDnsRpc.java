@@ -35,6 +35,7 @@ import com.google.api.services.dns.model.ManagedZonesListResponse;
 import com.google.api.services.dns.model.Project;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.api.services.dns.model.ResourceRecordSetsListResponse;
+import com.google.cloud.RetryHelper;
 import com.google.cloud.dns.DnsException;
 import com.google.cloud.dns.DnsOptions;
 import com.google.cloud.http.HttpTransportOptions;
@@ -383,23 +384,21 @@ public class HttpDnsRpc implements DnsRpc {
   }
 
   @Override
-  public DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options) {
+  public DnsKey getDnsKey(String zoneName, String dnsKeyId, Map<Option, ?> options)
+      throws IOException {
     try {
       return dns.dnsKeys()
           .get(this.options.getProjectId(), zoneName, dnsKeyId)
           .setFields(Option.FIELDS.getString(options))
           .execute();
-    } catch (IOException ex) {
-      DnsException serviceException = translate(ex, true);
-      if (serviceException.getCode() == HTTP_NOT_FOUND) {
-        return null;
-      }
-      throw serviceException;
+    } catch (RetryHelper.RetryHelperException ex) {
+      throw DnsException.translateAndThrow(ex);
     }
   }
 
   @Override
-  public ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options) {
+  public ListResult<DnsKey> listDnsKeys(String zoneName, Map<Option, ?> options)
+      throws IOException {
     try {
       DnsKeysListResponse dnsKeysListResponse =
           dns.dnsKeys()
@@ -410,12 +409,8 @@ public class HttpDnsRpc implements DnsRpc {
               .execute();
       return ListResult.of(
           dnsKeysListResponse.getNextPageToken(), dnsKeysListResponse.getDnsKeys());
-    } catch (IOException ex) {
-      DnsException serviceException = translate(ex, true);
-      if (serviceException.getCode() == HTTP_NOT_FOUND) {
-        return null;
-      }
-      throw serviceException;
+    } catch (RetryHelper.RetryHelperException ex) {
+      throw DnsException.translateAndThrow(ex);
     }
   }
 
