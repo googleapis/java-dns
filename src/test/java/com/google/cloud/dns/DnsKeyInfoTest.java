@@ -70,7 +70,7 @@ public class DnsKeyInfoTest {
   }
 
   @Test
-  public void testToAndFromPb() {
+  public void testToProtobufAndFromProtobuf() {
     DnsKeyInfo info = DnsKeyInfo.fromProtobuf(DNS_KEY_INFO.toProtobuf());
     compareDnsKey(DNS_KEY_INFO, info);
   }

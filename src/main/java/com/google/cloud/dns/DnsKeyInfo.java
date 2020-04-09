@@ -51,7 +51,7 @@ public class DnsKeyInfo implements Serializable {
   static class DnsKeyDigestInfo implements Serializable {
 
     static Function<DnsKeyDigest, DnsKeyDigestInfo> FROM_PROTOBUF_FUNCTION =
-        new Function<com.google.api.services.dns.model.DnsKeyDigest, DnsKeyDigestInfo>() {
+        new Function<DnsKeyDigest, DnsKeyDigestInfo>() {
           @Override
           public DnsKeyDigestInfo apply(DnsKeyDigest dnsKeyDigest) {
             return DnsKeyDigestInfo.fromProtobuf(dnsKeyDigest);
@@ -59,7 +59,7 @@ public class DnsKeyInfo implements Serializable {
         };
 
     static Function<DnsKeyDigestInfo, DnsKeyDigest> TO_PROTOBUF_FUNCTION =
-        new Function<DnsKeyDigestInfo, com.google.api.services.dns.model.DnsKeyDigest>() {
+        new Function<DnsKeyDigestInfo, DnsKeyDigest>() {
           @Override
           public DnsKeyDigest apply(DnsKeyDigestInfo dnsKeyDigestInfo) {
             return dnsKeyDigestInfo.toProtobuf();

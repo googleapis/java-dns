@@ -413,10 +413,8 @@ public interface Dns extends Service<DnsOptions> {
     }
   }
 
-  /** Class for specifying dns request field options. */
+  /** Class for specifying DNS request field options. */
   class DnsKeyOption extends Option {
-
-    private static final long serialVersionUID = 1067273695061077782L;
 
     DnsKeyOption(DnsRpc.Option option, Object value) {
       super(option, value);
@@ -437,10 +435,8 @@ public interface Dns extends Service<DnsOptions> {
     }
   }
 
-  /** Class for specifying dns request listing options. */
+  /** Class for specifying DNS request listing options. */
   class DnsKeyListOption extends Option {
-
-    private static final long serialVersionUID = -900209143895376089L;
 
     DnsKeyListOption(DnsRpc.Option option, Object value) {
       super(option, value);
@@ -472,18 +468,17 @@ public interface Dns extends Service<DnsOptions> {
     }
 
     /**
-     * The maximum number of change requests to return per RPC.
+     * The maximum number of dns requests to return per RPC.
      *
-     * <p>The server can return fewer change requests than requested. When there are more results
-     * than the page size, the server will return a page token that can be used to fetch other
-     * results.
+     * <p>The server can return fewer dns requests than requested. When there are more results than
+     * the page size, the server will return a page token that can be used to fetch other results.
      */
     public static DnsKeyListOption pageSize(int pageSize) {
       return new DnsKeyListOption(DnsRpc.Option.PAGE_SIZE, pageSize);
     }
 
     /**
-     * Returns an option to specify whether the change requests should be listed in ascending
+     * Returns an option to specify whether the dns requests should be listed in ascending
      * (most-recent last) or descending (most-recent first) order with respect to when the change
      * request was accepted by the server. If this option is not provided, the listing order is
      * undefined.
