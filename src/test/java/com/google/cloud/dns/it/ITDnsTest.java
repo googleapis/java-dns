@@ -64,8 +64,47 @@ public class ITDnsTest {
   private static final String ZONE_DNS_NAME1 = ZONE_NAME1 + ".com.";
   private static final String ZONE_DNS_EMPTY_DESCRIPTION = ZONE_NAME_EMPTY_DESCRIPTION + ".com.";
   private static final String ZONE_DNS_NAME_NO_PERIOD = ZONE_NAME1 + ".com";
+
+  private static final String ALGORITHM = "rsasha256";
+  private static final String KEY_TYPE1 = "zoneSigning";
+  private static final String KEY_TYPE2 = "keySigning";
+  private static final String STATE = "off";
+  private static final String NON_EXISTENCE = "nsec";
+  private static final Long ZSK_KEY_LENGTH = 1024L;
+  private static final Long KSK_KEY_LENGTH = 2048L;
+  private static final ZoneInfo.KeySpec ZONE_SIGNING_KEY_SPEC =
+      ZoneInfo.KeySpec.newBuilder()
+          .setAlgorithm(ALGORITHM)
+          .setKeyLength(ZSK_KEY_LENGTH)
+          .setKeyType(KEY_TYPE1)
+          .build();
+  private static final ZoneInfo.KeySpec KEY_SIGNING_KEY_SPEC =
+      ZoneInfo.KeySpec.newBuilder()
+          .setAlgorithm(ALGORITHM)
+          .setKeyLength(KSK_KEY_LENGTH)
+          .setKeyType(KEY_TYPE2)
+          .build();
+  private static final List<ZoneInfo.KeySpec> DEFAULT_KEY_SPECS =
+      ImmutableList.of(ZONE_SIGNING_KEY_SPEC, KEY_SIGNING_KEY_SPEC);
+  private static final ZoneInfo.DnsSecConfig DNS_SEC_CONFIG =
+      ZoneInfo.DnsSecConfig.newBuilder()
+          .setDefaultKeySpecs(DEFAULT_KEY_SPECS)
+          .setState(STATE)
+          .setNonExistence(NON_EXISTENCE)
+          .build();
   private static final ZoneInfo ZONE1 =
-      ZoneInfo.of(ZONE_NAME1, ZONE_DNS_EMPTY_DESCRIPTION, ZONE_DESCRIPTION1);
+      ZoneInfo.newBuilder(ZONE_NAME1)
+          .setDnsName(ZONE_DNS_EMPTY_DESCRIPTION)
+          .setDescription(ZONE_DESCRIPTION1)
+          .setDnsSecConfig(DNS_SEC_CONFIG)
+          .build();
+  private static final ZoneInfo ZONE_DNSSEC =
+      ZoneInfo.newBuilder(ZONE_NAME1)
+          .setDnsName(ZONE_DNS_NAME1)
+          .setDescription(ZONE_DESCRIPTION1)
+          .setDnsSecConfig(DNS_SEC_CONFIG)
+          .build();
+
   private static final ZoneInfo ZONE_EMPTY_DESCRIPTION =
       ZoneInfo.of(ZONE_NAME_EMPTY_DESCRIPTION, ZONE_DNS_NAME1, ZONE_DESCRIPTION1);
   private static final ZoneInfo ZONE_NAME_ERROR =
@@ -284,6 +323,20 @@ public class ITDnsTest {
       assertTrue(created.getNameServers().isEmpty()); // never returns null
       assertNotNull(created.getGeneratedId());
       created.delete();
+      created = DNS.create(ZONE1, Dns.ZoneOption.fields(ZoneField.DNSSEC));
+      assertEquals(ZONE_DNSSEC.getName(), created.getName());
+      assertNull(created.getDnsName());
+      assertNull(created.getDescription());
+      assertNull(created.getCreationTimeMillis());
+      assertNull(created.getGeneratedId());
+      assertNull(created.getNameServerSet());
+      assertTrue(created.getNameServers().isEmpty());
+      ZoneInfo.DnsSecConfig dnsSecConfig = created.getDnsSecConfig();
+      assertEquals(2, dnsSecConfig.getDefaultKeySpecs().size());
+      assertEquals(NON_EXISTENCE, dnsSecConfig.getNonExistence());
+      assertEquals(STATE, dnsSecConfig.getState());
+      created.delete();
+
       // combination of multiple things
       created =
           DNS.create(
@@ -302,6 +355,28 @@ public class ITDnsTest {
       assertNotNull(created.getGeneratedId());
     } finally {
       DNS.delete(ZONE1.getName());
+    }
+  }
+
+  @Test
+  public void testZoneCreatedWithDnsSecConfig() {
+    try {
+      Zone created = DNS.create(ZONE_DNSSEC);
+      assertEquals(ZONE_DNSSEC.getName(), created.getName());
+      assertEquals(ZONE_DNSSEC.getDnsName(), created.getDnsName());
+      assertEquals(ZONE_DNSSEC.getDescription(), created.getDescription());
+      assertNotNull(created.getCreationTimeMillis());
+      assertNotNull(created.getGeneratedId());
+      assertNull(created.getNameServerSet());
+      assertFalse(created.getNameServers().isEmpty());
+
+      ZoneInfo.DnsSecConfig dnsSecConfig = created.getDnsSecConfig();
+      assertEquals(2, dnsSecConfig.getDefaultKeySpecs().size());
+      assertEquals(NON_EXISTENCE, dnsSecConfig.getNonExistence());
+      assertEquals(STATE, dnsSecConfig.getState());
+
+    } finally {
+      DNS.delete(ZONE_DNSSEC.getName());
     }
   }
 
@@ -365,6 +440,18 @@ public class ITDnsTest {
       assertNotNull(created.getNameServers());
       assertTrue(created.getNameServers().isEmpty()); // never returns null
       assertNotNull(created.getGeneratedId());
+      created = DNS.getZone(ZONE1.getName(), Dns.ZoneOption.fields(ZoneField.DNSSEC));
+      assertEquals(ZONE_DNSSEC.getName(), created.getName());
+      assertNull(created.getDnsName());
+      assertNull(created.getDescription());
+      assertNull(created.getCreationTimeMillis());
+      assertNull(created.getGeneratedId());
+      assertNull(created.getNameServerSet());
+      assertTrue(created.getNameServers().isEmpty());
+      ZoneInfo.DnsSecConfig dnsSecConfig = created.getDnsSecConfig();
+      assertEquals(2, dnsSecConfig.getDefaultKeySpecs().size());
+      assertEquals(NON_EXISTENCE, dnsSecConfig.getNonExistence());
+      assertEquals(STATE, dnsSecConfig.getState());
       // combination of multiple things
       created =
           DNS.getZone(
