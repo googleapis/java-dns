@@ -25,12 +25,13 @@ import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
@@ -177,6 +178,9 @@ public class ZoneInfo implements Serializable {
   /** This class represents the DNSSEC configuration. */
   public static class DnsSecConfig {
 
+    private static final Set<String> VALID_STATE_VALUES = ImmutableSet.of("on", "off", "transfer");
+    private static final Set<String> VALID_NONEXISTANCE_VALUES = ImmutableSet.of("nsec", "nsec3");
+
     private List<KeySpec> defaultKeySpecs;
     private String nonExistence;
     private String state;
@@ -210,7 +214,7 @@ public class ZoneInfo implements Serializable {
        * @throws IllegalArgumentException if nonExistence value is not acceptable
        */
       public Builder setNonExistence(String nonExistence) {
-        validateNonExistence(nonExistence);
+        validateValue(nonExistence, VALID_NONEXISTANCE_VALUES);
         this.nonExistence = nonExistence;
         return this;
       }
@@ -222,7 +226,7 @@ public class ZoneInfo implements Serializable {
        * @throws IllegalArgumentException if state value is not acceptable
        */
       public Builder setState(String state) {
-        validateState(state);
+        validateValue(state, VALID_STATE_VALUES);
         this.state = state;
         return this;
       }
@@ -328,19 +332,10 @@ public class ZoneInfo implements Serializable {
       return state;
     }
 
-    private static void validateState(String state) {
-      List<String> states = Arrays.asList("on", "off", "transfer");
-      if (!states.contains(state)) {
+    private static void validateValue(String value, Set<String> validValues) {
+      if (!validValues.contains(value)) {
         throw new IllegalArgumentException(
-            "Invalid state value, Acceptable values are 'on', 'off' or 'transfer' only");
-      }
-    }
-
-    private static void validateNonExistence(String nonExistence) {
-      List<String> values = Arrays.asList("nsec", "nsec3");
-      if (!values.contains(nonExistence)) {
-        throw new IllegalArgumentException(
-            "Invalid NonExistence value, Acceptable values are 'nsec', or 'nsec3' only");
+            "Invalid value, Use one of the value from acceptable values " + validValues);
       }
     }
   }

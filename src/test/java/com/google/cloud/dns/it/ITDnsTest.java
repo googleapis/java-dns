@@ -400,7 +400,7 @@ public class ITDnsTest {
       fail();
     } catch (IllegalArgumentException ex) {
       assertEquals(
-          "Invalid state value, Acceptable values are 'on', 'off' or 'transfer' only",
+          "Invalid value, Use one of the value from acceptable values [on, off, transfer]",
           ex.getMessage());
     }
   }
@@ -425,7 +425,7 @@ public class ITDnsTest {
       fail();
     } catch (IllegalArgumentException ex) {
       assertEquals(
-          "Invalid NonExistence value, Acceptable values are 'nsec', or 'nsec3' only",
+          "Invalid value, Use one of the value from acceptable values [nsec, nsec3]",
           ex.getMessage());
     }
   }

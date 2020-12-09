@@ -216,7 +216,8 @@ public class ZoneInfoTest {
             .build();
     assertEquals(partial, ZoneInfo.fromPb(partial.toPb()));
     assertEquals(DNS_SEC_CONFIG, ZoneInfo.DnsSecConfig.fromPb(DNS_SEC_CONFIG.toPb()));
-    ZoneInfo.DnsSecConfig partialDnsSecConfig = ZoneInfo.DnsSecConfig.newBuilder().build();
+    ZoneInfo.DnsSecConfig partialDnsSecConfig =
+        ZoneInfo.DnsSecConfig.newBuilder().setState(STATE).setNonExistence(NON_EXISTENCE).build();
     assertEquals(partialDnsSecConfig, ZoneInfo.DnsSecConfig.fromPb(partialDnsSecConfig.toPb()));
   }
 
