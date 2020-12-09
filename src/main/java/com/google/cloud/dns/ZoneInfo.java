@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.threeten.bp.Instant;
@@ -205,8 +206,11 @@ public class ZoneInfo implements Serializable {
       /**
        * Specifies the mechanism for authenticated denial-of-existence responses. This can be change
        * while state is OFF. Acceptable values are 'nsec' or 'nsec3'.
+       *
+       * @throws IllegalArgumentException if nonExistence value is not acceptable
        */
       public Builder setNonExistence(String nonExistence) {
+        validateNonExistence(nonExistence);
         this.nonExistence = nonExistence;
         return this;
       }
@@ -214,8 +218,11 @@ public class ZoneInfo implements Serializable {
       /**
        * Specifies whether DNSSEC is enabled, and what mode it is in. Acceptable values are 'on',
        * 'off' or 'transfer'.
+       *
+       * @throws IllegalArgumentException if state value is not acceptable
        */
       public Builder setState(String state) {
+        validateState(state);
         this.state = state;
         return this;
       }
@@ -319,6 +326,22 @@ public class ZoneInfo implements Serializable {
     /** Returns the DNSSEC state. */
     public String getState() {
       return state;
+    }
+
+    private static void validateState(String state) {
+      List<String> states = Arrays.asList("on", "off", "transfer");
+      if (!states.contains(state)) {
+        throw new IllegalArgumentException(
+            "Invalid state value, Acceptable values are 'on', 'off' or 'transfer' only");
+      }
+    }
+
+    private static void validateNonExistence(String nonExistence) {
+      List<String> values = Arrays.asList("nsec", "nsec3");
+      if (!values.contains(nonExistence)) {
+        throw new IllegalArgumentException(
+            "Invalid NonExistence value, Acceptable values are 'nsec', or 'nsec3' only");
+      }
     }
   }
 

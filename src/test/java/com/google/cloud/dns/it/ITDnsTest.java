@@ -381,6 +381,56 @@ public class ITDnsTest {
   }
 
   @Test
+  public void testNotAcceptableStateValue() {
+    try {
+      String notAcceptableState = "abc";
+      ZoneInfo.DnsSecConfig dnsSecConfig =
+          ZoneInfo.DnsSecConfig.newBuilder()
+              .setDefaultKeySpecs(DEFAULT_KEY_SPECS)
+              .setState(notAcceptableState)
+              .setNonExistence(NON_EXISTENCE)
+              .build();
+      ZoneInfo zoneInfo =
+          ZoneInfo.newBuilder(ZONE_NAME1)
+              .setDnsName(ZONE_DNS_NAME1)
+              .setDescription(ZONE_DESCRIPTION1)
+              .setDnsSecConfig(dnsSecConfig)
+              .build();
+      DNS.create(zoneInfo);
+      fail();
+    } catch (IllegalArgumentException ex) {
+      assertEquals(
+          "Invalid state value, Acceptable values are 'on', 'off' or 'transfer' only",
+          ex.getMessage());
+    }
+  }
+
+  @Test
+  public void testNotAcceptableNonExistenceValue() {
+    try {
+      String notAcceptableNonExistence = "abc";
+      ZoneInfo.DnsSecConfig dnsSecConfig =
+          ZoneInfo.DnsSecConfig.newBuilder()
+              .setDefaultKeySpecs(DEFAULT_KEY_SPECS)
+              .setState(STATE)
+              .setNonExistence(notAcceptableNonExistence)
+              .build();
+      ZoneInfo zoneInfo =
+          ZoneInfo.newBuilder(ZONE_NAME1)
+              .setDnsName(ZONE_DNS_NAME1)
+              .setDescription(ZONE_DESCRIPTION1)
+              .setDnsSecConfig(dnsSecConfig)
+              .build();
+      DNS.create(zoneInfo);
+      fail();
+    } catch (IllegalArgumentException ex) {
+      assertEquals(
+          "Invalid NonExistence value, Acceptable values are 'nsec', or 'nsec3' only",
+          ex.getMessage());
+    }
+  }
+
+  @Test
   public void testGetZone() {
     try {
       DNS.create(ZONE1, Dns.ZoneOption.fields(ZoneField.NAME));
