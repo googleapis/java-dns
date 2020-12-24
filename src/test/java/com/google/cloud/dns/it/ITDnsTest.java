@@ -42,7 +42,11 @@ import com.google.cloud.dns.ZoneInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -174,7 +178,6 @@ public class ITDnsTest {
   public void testCreateValidZone() {
     try {
       Zone created = DNS.create(ZONE1);
-      System.out.println(created);
       assertEquals(ZONE1.getDescription(), created.getDescription());
       assertEquals(ZONE1.getDnsName(), created.getDnsName());
       assertEquals(ZONE1.getName(), created.getName());
