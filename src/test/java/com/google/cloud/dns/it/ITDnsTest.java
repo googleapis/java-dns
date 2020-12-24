@@ -40,11 +40,9 @@ import com.google.cloud.dns.RecordSet;
 import com.google.cloud.dns.Zone;
 import com.google.cloud.dns.ZoneInfo;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -64,8 +62,14 @@ public class ITDnsTest {
   private static final String ZONE_DNS_NAME1 = ZONE_NAME1 + ".com.";
   private static final String ZONE_DNS_EMPTY_DESCRIPTION = ZONE_NAME_EMPTY_DESCRIPTION + ".com.";
   private static final String ZONE_DNS_NAME_NO_PERIOD = ZONE_NAME1 + ".com";
+  private static final Map<String, String> LABELS =
+      ImmutableMap.of("label1", "value1", "label2", "value2");
   private static final ZoneInfo ZONE1 =
-      ZoneInfo.of(ZONE_NAME1, ZONE_DNS_EMPTY_DESCRIPTION, ZONE_DESCRIPTION1);
+      ZoneInfo.newBuilder(ZONE_NAME1)
+          .setDnsName(ZONE_DNS_EMPTY_DESCRIPTION)
+          .setDescription(ZONE_DESCRIPTION1)
+          .setLabels(LABELS)
+          .build();
   private static final ZoneInfo ZONE_EMPTY_DESCRIPTION =
       ZoneInfo.of(ZONE_NAME_EMPTY_DESCRIPTION, ZONE_DNS_NAME1, ZONE_DESCRIPTION1);
   private static final ZoneInfo ZONE_NAME_ERROR =
@@ -170,9 +174,11 @@ public class ITDnsTest {
   public void testCreateValidZone() {
     try {
       Zone created = DNS.create(ZONE1);
+      System.out.println(created);
       assertEquals(ZONE1.getDescription(), created.getDescription());
       assertEquals(ZONE1.getDnsName(), created.getDnsName());
       assertEquals(ZONE1.getName(), created.getName());
+      assertEquals(ZONE1.getLabels(), created.getLabels());
       assertNotNull(created.getCreationTimeMillis());
       assertNotNull(created.getNameServers());
       assertNull(created.getNameServerSet());
@@ -357,6 +363,15 @@ public class ITDnsTest {
       assertFalse(created.getNameServers().isEmpty());
       assertNull(created.getNameServerSet());
       assertNull(created.getGeneratedId());
+      created = DNS.getZone(ZONE1.getName(), Dns.ZoneOption.fields(ZoneField.LABELS));
+      assertEquals(ZONE1.getName(), created.getName()); // always returned
+      assertNull(created.getCreationTimeMillis());
+      assertNull(created.getDnsName());
+      assertNull(created.getDescription());
+      assertTrue(created.getNameServers().isEmpty());
+      assertNull(created.getNameServerSet());
+      assertEquals(LABELS, created.getLabels());
+      assertNull(created.getGeneratedId());
       created = DNS.getZone(ZONE1.getName(), Dns.ZoneOption.fields(ZoneField.ZONE_ID));
       assertEquals(ZONE1.getName(), created.getName()); // always returned
       assertNull(created.getCreationTimeMillis());
@@ -373,7 +388,8 @@ public class ITDnsTest {
                   ZoneField.ZONE_ID,
                   ZoneField.NAME_SERVERS,
                   ZoneField.NAME_SERVER_SET,
-                  ZoneField.DESCRIPTION));
+                  ZoneField.DESCRIPTION,
+                  ZoneField.LABELS));
       assertEquals(ZONE1.getName(), created.getName()); // always returned
       assertNull(created.getCreationTimeMillis());
       assertNull(created.getDnsName());
@@ -381,6 +397,7 @@ public class ITDnsTest {
       assertFalse(created.getNameServers().isEmpty());
       assertNull(created.getNameServerSet()); // we did not set it
       assertNotNull(created.getGeneratedId());
+      assertEquals(ZONE1.getLabels(), created.getLabels());
     } finally {
       DNS.delete(ZONE1.getName());
     }

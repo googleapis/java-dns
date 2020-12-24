@@ -23,9 +23,11 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 public class ZoneInfoTest {
@@ -40,6 +42,8 @@ public class ZoneInfoTest {
   private static final String NS2 = "name server 2";
   private static final String NS3 = "name server 3";
   private static final List<String> NAME_SERVERS = ImmutableList.of(NS1, NS2, NS3);
+  private static final Map<String, String> LABELS =
+      ImmutableMap.of("label1", "value1", "label2", "value2");
   private static final ZoneInfo INFO =
       ZoneInfo.of(NAME, DNS_NAME, DESCRIPTION)
           .toBuilder()
@@ -47,6 +51,7 @@ public class ZoneInfoTest {
           .setGeneratedId(GENERATED_ID)
           .setNameServerSet(NAME_SERVER_SET)
           .setNameServers(NAME_SERVERS)
+          .setLabels(LABELS)
           .build();
 
   @Test
@@ -73,6 +78,7 @@ public class ZoneInfoTest {
     assertEquals(NAME_SERVER_SET, INFO.getNameServerSet());
     assertEquals(DESCRIPTION, INFO.getDescription());
     assertEquals(DNS_NAME, INFO.getDnsName());
+    assertEquals(LABELS, INFO.getLabels());
   }
 
   @Test

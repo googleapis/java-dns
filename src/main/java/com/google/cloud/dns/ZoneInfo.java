@@ -18,13 +18,17 @@ package com.google.cloud.dns;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.dns.model.ManagedZone;
+import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneOffset;
@@ -49,6 +53,7 @@ public class ZoneInfo implements Serializable {
   private final String description;
   private final String nameServerSet;
   private final List<String> nameServers;
+  private final Map<String, String> labels;
 
   /** Builder for {@code ZoneInfo}. */
   public abstract static class Builder {
@@ -84,6 +89,9 @@ public class ZoneInfo implements Serializable {
      */
     abstract Builder setNameServers(List<String> nameServers);
 
+    /** Sets the label of this zone. */
+    public abstract Builder setLabels(Map<String, String> labels);
+
     /** Builds the instance of {@code ZoneInfo} based on the information set by this builder. */
     public abstract ZoneInfo build();
   }
@@ -96,6 +104,7 @@ public class ZoneInfo implements Serializable {
     private String description;
     private String nameServerSet;
     private List<String> nameServers;
+    private Map<String, String> labels;
 
     private BuilderImpl(String name) {
       this.name = checkNotNull(name);
@@ -112,6 +121,7 @@ public class ZoneInfo implements Serializable {
       if (info.nameServers != null) {
         this.nameServers = ImmutableList.copyOf(info.nameServers);
       }
+      this.labels = info.labels;
     }
 
     @Override
@@ -158,6 +168,23 @@ public class ZoneInfo implements Serializable {
     }
 
     @Override
+    public Builder setLabels(Map<String, String> labels) {
+      if (labels != null) {
+        this.labels =
+            Maps.transformValues(
+                labels,
+                new Function<String, String>() {
+                  @Override
+                  public String apply(String input) {
+                    // replace null values with empty strings
+                    return input == null ? Data.<String>nullOf(String.class) : input;
+                  }
+                });
+      }
+      return this;
+    }
+
+    @Override
     public ZoneInfo build() {
       return new ZoneInfo(this);
     }
@@ -172,6 +199,7 @@ public class ZoneInfo implements Serializable {
     this.nameServerSet = builder.nameServerSet;
     this.nameServers =
         builder.nameServers == null ? null : ImmutableList.copyOf(builder.nameServers);
+    this.labels = builder.labels;
   }
 
   /**
@@ -214,6 +242,11 @@ public class ZoneInfo implements Serializable {
     return nameServerSet;
   }
 
+  /** Returns the labels for this zone. */
+  public Map<String, String> getLabels() {
+    return labels;
+  }
+
   /**
    * The nameservers that the zone should be delegated to. This is defined by the Google DNS cloud.
    */
@@ -224,6 +257,11 @@ public class ZoneInfo implements Serializable {
   /** Returns a builder for {@code ZoneInfo} prepopulated with the metadata of this zone. */
   public Builder toBuilder() {
     return new BuilderImpl(this);
+  }
+
+  /** Returns a {@code ZoneInfo} builder where the DNS name is set to the provided name. */
+  public static Builder newBuilder(String name) {
+    return new BuilderImpl(name);
   }
 
   ManagedZone toPb() {
@@ -239,6 +277,9 @@ public class ZoneInfo implements Serializable {
     if (this.getCreationTimeMillis() != null) {
       pb.setCreationTime(
           DATE_TIME_FORMATTER.format(Instant.ofEpochMilli(this.getCreationTimeMillis())));
+    }
+    if (this.getLabels() != null) {
+      pb.setLabels(labels);
     }
     return pb;
   }
@@ -264,6 +305,9 @@ public class ZoneInfo implements Serializable {
       builder.setCreationTimeMillis(
           DATE_TIME_FORMATTER.parse(pb.getCreationTime(), Instant.FROM).toEpochMilli());
     }
+    if (pb.getLabels() != null) {
+      builder.setLabels(pb.getLabels());
+    }
     return builder.build();
   }
 
@@ -278,7 +322,14 @@ public class ZoneInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(
-        name, generatedId, creationTimeMillis, dnsName, description, nameServerSet, nameServers);
+        name,
+        generatedId,
+        creationTimeMillis,
+        dnsName,
+        description,
+        nameServerSet,
+        nameServers,
+        labels);
   }
 
   @Override
@@ -291,6 +342,7 @@ public class ZoneInfo implements Serializable {
         .add("nameServerSet", getNameServerSet())
         .add("nameServers", getNameServers())
         .add("creationTimeMillis", getCreationTimeMillis())
+        .add("labels", getLabels())
         .toString();
   }
 }

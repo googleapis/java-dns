@@ -23,6 +23,7 @@ import com.google.api.services.dns.model.ManagedZone;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -91,6 +92,12 @@ public class Zone extends ZoneInfo {
     @Override
     Builder setNameServers(List<String> nameServers) {
       infoBuilder.setNameServers(nameServers); // infoBuilder makes a copy
+      return this;
+    }
+
+    @Override
+    public Builder setLabels(Map<String, String> labels) {
+      infoBuilder.setLabels(labels);
       return this;
     }
 

@@ -69,7 +69,8 @@ public interface Dns extends Service<DnsOptions> {
     ZONE_ID("id"),
     NAME("name"),
     NAME_SERVER_SET("nameServerSet"),
-    NAME_SERVERS("nameServers");
+    NAME_SERVERS("nameServers"),
+    LABELS("labels");
 
     static final List<? extends FieldSelector> REQUIRED_FIELDS = ImmutableList.of(NAME);
 
