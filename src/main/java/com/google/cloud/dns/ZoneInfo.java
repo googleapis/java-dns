@@ -573,11 +573,6 @@ public class ZoneInfo implements Serializable {
     return new BuilderImpl(this);
   }
 
-  /** Returns a {@code ZoneInfo} builder where the DNS name is set to the provided name. */
-  public static Builder newBuilder(String name) {
-    return new BuilderImpl(name);
-  }
-
   ManagedZone toPb() {
     ManagedZone pb = new ManagedZone();
     pb.setDescription(this.getDescription());
