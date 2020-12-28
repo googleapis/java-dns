@@ -96,6 +96,12 @@ public class Zone extends ZoneInfo {
     }
 
     @Override
+    public Builder setDnsSecConfig(DnsSecConfig dnsSecConfig) {
+      infoBuilder.setDnsSecConfig(dnsSecConfig);
+      return this;
+    }
+
+    @Override
     public Builder setLabels(Map<String, String> labels) {
       infoBuilder.setLabels(labels);
       return this;
