@@ -375,7 +375,9 @@ public class ZoneInfo implements Serializable {
     abstract Builder setNameServers(List<String> nameServers);
 
     /** Sets the DNSSEC configuration. */
-    public abstract Builder setDnsSecConfig(DnsSecConfig dnsSecConfig);
+    public Builder setDnsSecConfig(DnsSecConfig dnsSecConfig) {
+      return this;
+    }
 
     /** Builds the instance of {@code ZoneInfo} based on the information set by this builder. */
     public abstract ZoneInfo build();

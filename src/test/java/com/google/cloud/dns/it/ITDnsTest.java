@@ -68,7 +68,7 @@ public class ITDnsTest {
   private static final String ALGORITHM = "rsasha256";
   private static final String KEY_TYPE1 = "zoneSigning";
   private static final String KEY_TYPE2 = "keySigning";
-  private static final String STATE = "off";
+  private static final String STATE = "on";
   private static final String NON_EXISTENCE = "nsec";
   private static final Long ZSK_KEY_LENGTH = 1024L;
   private static final Long KSK_KEY_LENGTH = 2048L;
@@ -218,7 +218,15 @@ public class ITDnsTest {
       assertNotNull(created.getGeneratedId());
       Zone retrieved = DNS.getZone(ZONE1.getName());
       assertEquals(created, retrieved);
-      created = DNS.create(ZONE_EMPTY_DESCRIPTION);
+    } finally {
+      DNS.delete(ZONE1.getName());
+    }
+  }
+
+  @Test
+  public void testCreateValidZoneEmptyDescription() {
+    try {
+      Zone created = DNS.create(ZONE_EMPTY_DESCRIPTION);
       assertEquals(ZONE_EMPTY_DESCRIPTION.getDescription(), created.getDescription());
       assertEquals(ZONE_EMPTY_DESCRIPTION.getDnsName(), created.getDnsName());
       assertEquals(ZONE_EMPTY_DESCRIPTION.getName(), created.getName());
@@ -226,10 +234,9 @@ public class ITDnsTest {
       assertNotNull(created.getNameServers());
       assertNull(created.getNameServerSet());
       assertNotNull(created.getGeneratedId());
-      retrieved = DNS.getZone(ZONE_EMPTY_DESCRIPTION.getName());
+      Zone retrieved = DNS.getZone(ZONE_EMPTY_DESCRIPTION.getName());
       assertEquals(created, retrieved);
     } finally {
-      DNS.delete(ZONE1.getName());
       DNS.delete(ZONE_EMPTY_DESCRIPTION.getName());
     }
   }
