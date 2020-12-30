@@ -49,6 +49,10 @@ public class ZoneInfoTest {
   private static final String KEY_TYPE2 = "keySigning";
   private static final String STATE = "off";
   private static final String NON_EXISTENCE = "nsec";
+  private static final String VISIBILITY = "private";
+  private static final String TARGET_NETWORK =
+      "https://www.googleapis.com/compute/v1/projects/test-project/global/networks/test-network";
+  private static final Long DEACTIVATE_TIME = 1123468321322L;
   private static final Long ZSK_KEY_LENGTH = 1024L;
   private static final Long KSK_KEY_LENGTH = 2048L;
   private static final ZoneInfo.KeySpec ZONE_SIGNING_KEY_SPEC =
@@ -71,6 +75,15 @@ public class ZoneInfoTest {
           .setState(STATE)
           .setNonExistence(NON_EXISTENCE)
           .build();
+  private static final ZoneInfo.ZonePeeringConfigTargetNetwork ZONE_PEERING_CONFIG_TARGET_NETWORK =
+      ZoneInfo.ZonePeeringConfigTargetNetwork.newBuilder()
+          .setTargetNetwork(TARGET_NETWORK)
+          .setDeactivateTime(DEACTIVATE_TIME)
+          .build();
+  private static final ZoneInfo.ZonePeeringConfig ZONE_PEERING_CONFIG =
+      ZoneInfo.ZonePeeringConfig.newBuilder()
+          .setZonePeeringConfigTargetNetwork(ZONE_PEERING_CONFIG_TARGET_NETWORK)
+          .build();
   private static final ZoneInfo INFO =
       ZoneInfo.of(NAME, DNS_NAME, DESCRIPTION)
           .toBuilder()
@@ -80,6 +93,8 @@ public class ZoneInfoTest {
           .setNameServers(NAME_SERVERS)
           .setDnsSecConfig(DNS_SEC_CONFIG)
           .setLabels(LABELS)
+          .setZonePeeringConfig(ZONE_PEERING_CONFIG)
+          .setVisibility(VISIBILITY)
           .build();
 
   @Test
@@ -108,6 +123,16 @@ public class ZoneInfoTest {
     assertEquals(DNS_NAME, INFO.getDnsName());
     assertEquals(DNS_SEC_CONFIG, INFO.getDnsSecConfig());
     assertEquals(LABELS, INFO.getLabels());
+
+    ZoneInfo.ZonePeeringConfig zonePeeringConfig = INFO.getZonePeeringConfig();
+    assertEquals(ZONE_PEERING_CONFIG, zonePeeringConfig);
+
+    ZoneInfo.ZonePeeringConfigTargetNetwork zonePeeringConfigTargetNetwork =
+        zonePeeringConfig.getZonePeeringConfigTargetNetwork();
+    assertEquals(ZONE_PEERING_CONFIG_TARGET_NETWORK, zonePeeringConfigTargetNetwork);
+    assertEquals(TARGET_NETWORK, zonePeeringConfigTargetNetwork.getTargetNetwork());
+    assertEquals(DEACTIVATE_TIME, zonePeeringConfigTargetNetwork.getDeactivateTime());
+    assertEquals(VISIBILITY, INFO.getVisibility());
 
     ZoneInfo.DnsSecConfig config = INFO.getDnsSecConfig();
     assertEquals(DEFAULT_KEY_SPECS, config.getDefaultKeySpecs());
@@ -225,6 +250,12 @@ public class ZoneInfoTest {
     ZoneInfo.DnsSecConfig partialDnsSecConfig =
         ZoneInfo.DnsSecConfig.newBuilder().setState(STATE).setNonExistence(NON_EXISTENCE).build();
     assertEquals(partialDnsSecConfig, ZoneInfo.DnsSecConfig.fromPb(partialDnsSecConfig.toPb()));
+
+    ZoneInfo.ZonePeeringConfig zonePeeringConfig =
+        ZoneInfo.ZonePeeringConfig.newBuilder()
+            .setZonePeeringConfigTargetNetwork(ZONE_PEERING_CONFIG_TARGET_NETWORK)
+            .build();
+    assertEquals(zonePeeringConfig, ZoneInfo.ZonePeeringConfig.fromPb(zonePeeringConfig.toPb()));
   }
 
   @Test

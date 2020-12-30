@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.api.gax.paging.Page;
+import com.google.cloud.ServiceOptions;
 import com.google.cloud.dns.ChangeRequest;
 import com.google.cloud.dns.ChangeRequestInfo;
 import com.google.cloud.dns.Dns;
@@ -56,9 +57,11 @@ import org.junit.rules.Timeout;
 
 public class ITDnsTest {
 
+  private static final String PROJECT = ServiceOptions.getDefaultProjectId();
   private static final String PREFIX = "gcldjvit-";
   private static final Dns DNS = DnsOptions.getDefaultInstance().getService();
   private static final String ZONE_NAME1 = (PREFIX + UUID.randomUUID()).substring(0, 32);
+  private static final String ZONE_NAME2 = (PREFIX + UUID.randomUUID()).substring(0, 32);
   private static final String ZONE_NAME_EMPTY_DESCRIPTION =
       (PREFIX + UUID.randomUUID()).substring(0, 32);
   private static final String ZONE_NAME_TOO_LONG = ZONE_NAME1 + UUID.randomUUID();
@@ -74,6 +77,9 @@ public class ITDnsTest {
   private static final String KEY_TYPE2 = "keySigning";
   private static final String STATE = "on";
   private static final String NON_EXISTENCE = "nsec";
+  private static final String TARGET_NETWORK =
+      "https://www.googleapis.com/compute/v1/projects/" + PROJECT + "/global/networks/default";
+  private static final String VISIBILITY = "private";
   private static final Long ZSK_KEY_LENGTH = 1024L;
   private static final Long KSK_KEY_LENGTH = 2048L;
   private static final ZoneInfo.KeySpec ZONE_SIGNING_KEY_SPEC =
@@ -96,12 +102,26 @@ public class ITDnsTest {
           .setState(STATE)
           .setNonExistence(NON_EXISTENCE)
           .build();
+  private static final ZoneInfo.ZonePeeringConfigTargetNetwork ZONE_PEERING_CONFIG_TARGET_NETWORK =
+      ZoneInfo.ZonePeeringConfigTargetNetwork.newBuilder().setTargetNetwork(TARGET_NETWORK).build();
+  private static final ZoneInfo.ZonePeeringConfig ZONE_PEERING_CONFIG =
+      ZoneInfo.ZonePeeringConfig.newBuilder()
+          .setZonePeeringConfigTargetNetwork(ZONE_PEERING_CONFIG_TARGET_NETWORK)
+          .build();
   private static final ZoneInfo ZONE1 =
       ZoneInfo.newBuilder(ZONE_NAME1)
           .setDnsName(ZONE_DNS_EMPTY_DESCRIPTION)
           .setDescription(ZONE_DESCRIPTION1)
           .setDnsSecConfig(DNS_SEC_CONFIG)
           .setLabels(LABELS)
+          .build();
+  private static final ZoneInfo ZONE2 =
+      ZoneInfo.newBuilder(ZONE_NAME2)
+          .setDnsName(ZONE_DNS_EMPTY_DESCRIPTION)
+          .setDescription(ZONE_DESCRIPTION1)
+          .setLabels(LABELS)
+          .setZonePeeringConfig(ZONE_PEERING_CONFIG)
+          .setVisibility(VISIBILITY)
           .build();
   private static final ZoneInfo ZONE_DNSSEC =
       ZoneInfo.newBuilder(ZONE_NAME1)
@@ -223,8 +243,14 @@ public class ITDnsTest {
       assertNotNull(created.getGeneratedId());
       Zone retrieved = DNS.getZone(ZONE1.getName());
       assertEquals(created, retrieved);
+
+      Zone createdZoneWithPeeringConfig = DNS.create(ZONE2);
+      assertEquals(
+          ZONE2.getZonePeeringConfig(), createdZoneWithPeeringConfig.getZonePeeringConfig());
+      assertEquals(VISIBILITY, ZONE2.getVisibility());
     } finally {
       DNS.delete(ZONE1.getName());
+      DNS.delete(ZONE2.getName());
     }
   }
 

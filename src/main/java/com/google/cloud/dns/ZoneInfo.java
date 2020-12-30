@@ -20,9 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.transform;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.dns.model.DnsKeySpec;
-import com.google.api.services.dns.model.ManagedZone;
-import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
+import com.google.api.services.dns.model.*;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -50,6 +48,7 @@ public class ZoneInfo implements Serializable {
   private static final long serialVersionUID = -5313169712036079818L;
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneOffset.UTC);
+  private static final Set<String> VALID_VISIBILITY_VALUES = ImmutableSet.of("private", "public");
 
   private final String name;
   private final String generatedId;
@@ -60,6 +59,8 @@ public class ZoneInfo implements Serializable {
   private final List<String> nameServers;
   private final DnsSecConfig dnsSecConfig;
   private final Map<String, String> labels;
+  private final ZonePeeringConfig zonePeeringConfig;
+  private final String visibility;
 
   /** This class represents the DNS key spec. */
   public static class KeySpec {
@@ -335,12 +336,183 @@ public class ZoneInfo implements Serializable {
     public String getState() {
       return state;
     }
+  }
 
-    private static void validateValue(String value, Set<String> validValues) {
-      if (!validValues.contains(value)) {
-        throw new IllegalArgumentException(
-            "Invalid value, Use one of the value from acceptable values " + validValues);
+  /** This class represent the ZonePeeringConfigTargetNetwork. */
+  public static class ZonePeeringConfigTargetNetwork {
+    private Long deactivateTime;
+    private String targetNetwork;
+
+    public static class Builder {
+      private Long deactivateTime;
+      private String targetNetwork;
+
+      private Builder() {}
+
+      /** The time at which the zone was deactivated, in RFC 3339 date-time format. Output only */
+      Builder setDeactivateTime(Long deactivateTime) {
+        this.deactivateTime = deactivateTime;
+        return this;
       }
+
+      /** Sets the target network. */
+      public Builder setTargetNetwork(String targetNetwork) {
+        this.targetNetwork = checkNotNull(targetNetwork);
+        return this;
+      }
+
+      /** Creates a {@code ZonePeeringConfigTargetNetwork} object. */
+      public ZonePeeringConfigTargetNetwork build() {
+        return new ZonePeeringConfigTargetNetwork(this);
+      }
+    }
+    /** Returns a builder for {@code ZonePeeringConfigTargetNetwork} objects. */
+    public static Builder newBuilder() {
+      return new Builder();
+    }
+
+    private ZonePeeringConfigTargetNetwork(Builder builder) {
+      deactivateTime = builder.deactivateTime;
+      targetNetwork = builder.targetNetwork;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      ZonePeeringConfigTargetNetwork that = (ZonePeeringConfigTargetNetwork) o;
+      return Objects.equals(deactivateTime, that.deactivateTime)
+          && Objects.equals(targetNetwork, that.targetNetwork);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("deactivateTime", getDeactivateTime())
+          .add("targetNetwork", getTargetNetwork())
+          .toString();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(deactivateTime, targetNetwork);
+    }
+
+    ManagedZonePeeringConfigTargetNetwork toPb() {
+      ManagedZonePeeringConfigTargetNetwork managedZonePeeringConfigTargetNetworkPb =
+          new ManagedZonePeeringConfigTargetNetwork();
+      if (this.getDeactivateTime() != null) {
+        managedZonePeeringConfigTargetNetworkPb.setDeactivateTime(
+            DATE_TIME_FORMATTER.format(Instant.ofEpochMilli(this.getDeactivateTime())));
+      }
+      managedZonePeeringConfigTargetNetworkPb.setNetworkUrl(targetNetwork);
+      return managedZonePeeringConfigTargetNetworkPb;
+    }
+
+    static ZonePeeringConfigTargetNetwork fromPb(
+        ManagedZonePeeringConfigTargetNetwork managedZonePeeringConfigTargetNetwork) {
+      ZonePeeringConfigTargetNetwork.Builder builder = newBuilder();
+      builder.setDeactivateTime(
+          managedZonePeeringConfigTargetNetwork.getDeactivateTime() == null
+              ? null
+              : DATE_TIME_FORMATTER
+                  .parse(managedZonePeeringConfigTargetNetwork.getDeactivateTime(), Instant.FROM)
+                  .toEpochMilli());
+      builder.setTargetNetwork(
+          managedZonePeeringConfigTargetNetwork.getNetworkUrl() == null
+              ? null
+              : managedZonePeeringConfigTargetNetwork.getNetworkUrl());
+      return builder.build();
+    }
+
+    /** Returns the time at which the zone was deactivated, in RFC 3339 date-time format. */
+    public Long getDeactivateTime() {
+      return deactivateTime;
+    }
+
+    /** Returns the fully qualified URL of the VPC network to forward queries to. */
+    public String getTargetNetwork() {
+      return targetNetwork;
+    }
+  }
+
+  /** This class represent the ZonePeeringConfig. */
+  public static class ZonePeeringConfig {
+    private ZonePeeringConfigTargetNetwork zonePeeringConfigTargetNetwork;
+
+    public static class Builder {
+      private ZonePeeringConfigTargetNetwork zonePeeringConfigTargetNetwork;
+
+      private Builder() {}
+
+      /** Sets the zone peering config target network. */
+      public Builder setZonePeeringConfigTargetNetwork(
+          ZonePeeringConfigTargetNetwork zonePeeringConfigTargetNetwork) {
+        this.zonePeeringConfigTargetNetwork = checkNotNull(zonePeeringConfigTargetNetwork);
+        return this;
+      }
+
+      /** Creates a {@code ZonePeeringConfig} object. */
+      public ZonePeeringConfig build() {
+        return new ZonePeeringConfig(this);
+      }
+    }
+
+    /** Returns a builder for {@code ZonePeeringConfig} objects. */
+    public static Builder newBuilder() {
+      return new Builder();
+    }
+
+    private ZonePeeringConfig(Builder builder) {
+      this.zonePeeringConfigTargetNetwork = builder.zonePeeringConfigTargetNetwork;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      ZonePeeringConfig that = (ZonePeeringConfig) o;
+      return Objects.equals(zonePeeringConfigTargetNetwork, that.zonePeeringConfigTargetNetwork);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(zonePeeringConfigTargetNetwork);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("zonePeeringConfigTargetNetwork", getZonePeeringConfigTargetNetwork())
+          .toString();
+    }
+
+    ManagedZonePeeringConfig toPb() {
+      ManagedZonePeeringConfig managedZonePeeringConfigPb = new ManagedZonePeeringConfig();
+      if (zonePeeringConfigTargetNetwork != null) {
+        managedZonePeeringConfigPb.setTargetNetwork(zonePeeringConfigTargetNetwork.toPb());
+      }
+      return managedZonePeeringConfigPb;
+    }
+
+    static ZonePeeringConfig fromPb(ManagedZonePeeringConfig managedZonePeeringConfig) {
+      return newBuilder()
+          .setZonePeeringConfigTargetNetwork(
+              ZonePeeringConfigTargetNetwork.fromPb(managedZonePeeringConfig.getTargetNetwork()))
+          .build();
+    }
+
+    /** Returns the zone peering config target network. */
+    public ZonePeeringConfigTargetNetwork getZonePeeringConfigTargetNetwork() {
+      return zonePeeringConfigTargetNetwork;
     }
   }
 
@@ -388,6 +560,16 @@ public class ZoneInfo implements Serializable {
       return this;
     }
 
+    /** Sets the zone peering config. */
+    public Builder setZonePeeringConfig(ZonePeeringConfig zonePeeringConfig) {
+      return this;
+    }
+
+    /** Sets zone's visibility. Acceptable values are 'private' or 'public' . */
+    public Builder setVisibility(String visibility) {
+      return this;
+    }
+
     /** Builds the instance of {@code ZoneInfo} based on the information set by this builder. */
     public abstract ZoneInfo build();
   }
@@ -402,6 +584,8 @@ public class ZoneInfo implements Serializable {
     private List<String> nameServers;
     private DnsSecConfig dnsSecConfig;
     private Map<String, String> labels;
+    private ZonePeeringConfig zonePeeringConfig;
+    private String visibility;
 
     private BuilderImpl(String name) {
       this.name = checkNotNull(name);
@@ -420,6 +604,8 @@ public class ZoneInfo implements Serializable {
       }
       this.dnsSecConfig = info.dnsSecConfig;
       this.labels = info.labels;
+      this.zonePeeringConfig = info.zonePeeringConfig;
+      this.visibility = info.visibility;
     }
 
     @Override
@@ -489,6 +675,19 @@ public class ZoneInfo implements Serializable {
     }
 
     @Override
+    public Builder setZonePeeringConfig(ZonePeeringConfig zonePeeringConfig) {
+      this.zonePeeringConfig = zonePeeringConfig;
+      return this;
+    }
+
+    @Override
+    public Builder setVisibility(String visibility) {
+      validateValue(visibility, VALID_VISIBILITY_VALUES);
+      this.visibility = visibility;
+      return this;
+    }
+
+    @Override
     public ZoneInfo build() {
       return new ZoneInfo(this);
     }
@@ -505,6 +704,8 @@ public class ZoneInfo implements Serializable {
         builder.nameServers == null ? null : ImmutableList.copyOf(builder.nameServers);
     this.dnsSecConfig = builder.dnsSecConfig;
     this.labels = builder.labels;
+    this.zonePeeringConfig = builder.zonePeeringConfig;
+    this.visibility = builder.visibility;
   }
 
   /**
@@ -568,6 +769,23 @@ public class ZoneInfo implements Serializable {
     return dnsSecConfig;
   }
 
+  /** Returns the zone peering config. */
+  public ZonePeeringConfig getZonePeeringConfig() {
+    return zonePeeringConfig;
+  }
+
+  /** Returns the zone's visibility. */
+  public String getVisibility() {
+    return visibility;
+  }
+
+  private static void validateValue(String value, Set<String> validValues) {
+    if (!validValues.contains(value)) {
+      throw new IllegalArgumentException(
+          "Invalid value, Use one of the value from acceptable values " + validValues);
+    }
+  }
+
   /** Returns a builder for {@code ZoneInfo} prepopulated with the metadata of this zone. */
   public Builder toBuilder() {
     return new BuilderImpl(this);
@@ -593,6 +811,10 @@ public class ZoneInfo implements Serializable {
     if (this.getLabels() != null) {
       pb.setLabels(labels);
     }
+    if (this.zonePeeringConfig != null) {
+      pb.setPeeringConfig(this.zonePeeringConfig.toPb());
+    }
+    pb.setVisibility(this.getVisibility());
     return pb;
   }
 
@@ -623,6 +845,12 @@ public class ZoneInfo implements Serializable {
     if (pb.getLabels() != null) {
       builder.setLabels(pb.getLabels());
     }
+    if (pb.getPeeringConfig() != null) {
+      builder.setZonePeeringConfig(ZonePeeringConfig.fromPb(pb.getPeeringConfig()));
+    }
+    if (pb.getVisibility() != null) {
+      builder.setVisibility(pb.getVisibility());
+    }
     return builder.build();
   }
 
@@ -645,7 +873,9 @@ public class ZoneInfo implements Serializable {
         nameServerSet,
         nameServers,
         dnsSecConfig,
-        labels);
+        labels,
+        zonePeeringConfig,
+        visibility);
   }
 
   @Override
@@ -660,6 +890,8 @@ public class ZoneInfo implements Serializable {
         .add("creationTimeMillis", getCreationTimeMillis())
         .add("dnsSecConfig", getDnsSecConfig())
         .add("labels", getLabels())
+        .add("zonePeeringConfig", getZonePeeringConfig())
+        .add("visibility", getVisibility())
         .toString();
   }
 }
