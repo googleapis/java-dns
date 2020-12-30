@@ -20,7 +20,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.transform;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.dns.model.*;
+import com.google.api.services.dns.model.DnsKeySpec;
+import com.google.api.services.dns.model.ManagedZone;
+import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
+import com.google.api.services.dns.model.ManagedZonePeeringConfig;
+import com.google.api.services.dns.model.ManagedZonePeeringConfigTargetNetwork;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
