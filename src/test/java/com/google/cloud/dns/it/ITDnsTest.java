@@ -267,6 +267,8 @@ public class ITDnsTest {
         fail("Zone name is missing a period. The service returns an error.");
       } catch (DnsException ex) {
         // expected
+        System.out.println("Got DnsException: " + ex.getMessage());
+        ex.printStackTrace();
         assertFalse(ex.isRetryable());
       }
     } finally {
@@ -1489,6 +1491,8 @@ public class ITDnsTest {
         fail("Zone name is missing a period. The service returns an error.");
       } catch (DnsException ex) {
         // expected
+        System.out.println("Got DnsException: " + ex.getMessage());
+        ex.printStackTrace();
         assertFalse(ex.isRetryable());
       }
     } finally {
