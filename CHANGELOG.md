@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://www.github.com/googleapis/java-dns/compare/v1.2.3...v1.3.0) (2021-08-04)
+
+
+### Features
+
+* configure initial sp version ([#470](https://www.github.com/googleapis/java-dns/issues/470)) ([57eb2bf](https://www.github.com/googleapis/java-dns/commit/57eb2bfdeff43902c04af48387e7647294137807))
+
 ### [1.2.3](https://www.github.com/googleapis/java-dns/compare/v1.2.2...v1.2.3) (2021-07-28)
 
 
