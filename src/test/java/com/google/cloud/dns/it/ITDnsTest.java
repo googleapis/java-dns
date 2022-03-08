@@ -1503,6 +1503,7 @@ public class ITDnsTest {
   }
 
   @Test
+  @Ignore
   public void testCreateZoneWithOptionsBatch() {
     assumeFalse(IS_VPC_TEST);
     try {
@@ -2232,6 +2233,7 @@ public class ITDnsTest {
   }
 
   @Test
+  @Ignore
   public void testBatchCombined() {
     assumeFalse(IS_VPC_TEST);
     // only testing that the combination is possible
